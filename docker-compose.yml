@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./API.Gateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ServiceUrls__UsersAPI=http://users-service:80
+      - ServiceUrls__LawyersAPI=http://lawyers-service:80
+      - ServiceUrls__AppointmentsAPI=http://appointments-service:80
+    depends_on:
+      - users-service
+      - lawyers-service
+      - appointments-service
+    networks:
+      - microservices-network
+
+  # Users Service
+  users-service:
+    build:
+      context: ./Users.Services.API
+      dockerfile: Dockerfile
+    ports:
+      - "7000:80"
+      - "7001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__UsersDbConnection=Server=sqlserver;Database=LA_Users;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+    networks:
+      - microservices-network
+
+  # Lawyers Service
+  lawyers-service:
+    build:
+      context: ./LA.Services.API
+      dockerfile: Dockerfile
+    ports:
+      - "7110:80"
+      - "7111:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__LawyerDbConnection=Server=sqlserver;Database=LA_Lawyer;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+    networks:
+      - microservices-network
+
+  # Appointments Service
+  appointments-service:
+    build:
+      context: ./Appointments.Services.API
+      dockerfile: Dockerfile
+    ports:
+      - "7002:80"
+      - "7003:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__AppointmentConnection=Server=sqlserver;Database=LA_Appointment;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - ConnectionStrings__SagaConnection=Server=sqlserver;Database=LA_Saga;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - ServiceUrls__UsersAPI=http://users-service:80
+      - ServiceUrls__LawyersAPI=http://lawyers-service:80
+    depends_on:
+      - sqlserver
+    networks:
+      - microservices-network
+
+  # Chat Service
+  chat-service:
+    build:
+      context: ./Chat.Services.API
+      dockerfile: Dockerfile
+    ports:
+      - "7120:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OpenAI__BaseUrl=https://generativelanguage.googleapis.com
+      - OpenAI__Model=gemini-1.5-flash
+      - OpenAI__ApiKey=${OPENAI_API_KEY}
+      - ServiceUrls__UsersAPI=http://users-service
+      - ServiceUrls__LawyersAPI=http://lawyers-service
+      - ServiceUrls__AppointmentsAPI=http://appointments-service
+      - ConnectionStrings__Redis=redis:6379
+    depends_on:
+      - users-service
+      - lawyers-service
+      - appointments-service
+      - redis
+    networks:
+      - microservices-network
+
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - microservices-network
+
+  # Redis for Caching (Optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  sqlserver_data:

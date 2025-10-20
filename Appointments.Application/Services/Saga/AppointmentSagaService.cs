@@ -1,0 +1,230 @@
+using Appointments.Infrastructure.Models;
+using Appointments.Infrastructure.Models.Dtos;
+using Appointments.Infrastructure.Models.Enums;
+using Appointments.Infrastructure.Models.Saga;
+using Appointments.Infrastructure.Repository;
+using Appointments.Application.Services.IService;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using System.Collections.Generic;
+
+namespace Appointments.Application.Services.Saga
+{
+    public class AppointmentSagaService : IAppointmentSagaService
+    {
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly WorkSlotApiClient _workSlotApiClient;
+        private readonly LawyerProfileApiClient _lawyerProfileApiClient;
+        private readonly UserApiClient _userApiClient;
+        private readonly IEmailService _emailService;
+        private readonly ISagaStateRepository _sagaStateRepository;
+        private readonly ILogger<AppointmentSagaService> _logger;
+        private readonly Dictionary<int, AppointmentSagaData> _sagaStates = new Dictionary<int, AppointmentSagaData>();
+
+
+        public AppointmentSagaService(
+            IAppointmentRepository appointmentRepository,
+            WorkSlotApiClient workSlotApiClient,
+            LawyerProfileApiClient lawyerProfileApiClient,
+            UserApiClient userApiClient,
+            IEmailService emailService,
+            ISagaStateRepository sagaStateRepository,
+            ILogger<AppointmentSagaService> logger)
+        {
+            _appointmentRepository = appointmentRepository;
+            _workSlotApiClient = workSlotApiClient;
+            _lawyerProfileApiClient = lawyerProfileApiClient;
+            _userApiClient = userApiClient;
+            _emailService = emailService;
+            _sagaStateRepository = sagaStateRepository;
+            _logger = logger;
+        }
+
+        public async Task<AppointmentSagaData> StartSagaAsync(CreateAppointmentDTO dto)
+        {
+            var sagaData = new AppointmentSagaData
+            {
+                UserId = dto.UserId,
+                LawyerId = dto.LawyerId,
+                ScheduledAt = dto.ScheduledAt,
+                Slot = dto.Slot,
+                Spec = dto.Spec,
+                Services = dto.Services ?? new List<string>(),
+                Note = dto.Note,
+                State = AppointmentSagaState.Started,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            try
+            {
+                // Step 1: Create appointment
+                var appointment = new Appointment
+                {
+                    UserId = dto.UserId,
+                    LawyerId = dto.LawyerId,
+                    ScheduledAt = dto.ScheduledAt,
+                    Slot = dto.Slot,
+                    CreateAt = DateTime.UtcNow,
+                    Spec = dto.Spec,
+                    Services = dto.Services ?? new List<string>(),
+                    Status = AppointmentStatus.Pending,
+                    IsDel = false,
+                    Note = dto.Note
+                };
+
+                await _appointmentRepository.AddAsync(appointment);
+                sagaData.AppointmentId = appointment.Id;
+                _sagaStates[appointment.Id] = sagaData;
+
+                _logger.LogInformation($"Saga started for appointment {appointment.Id}");
+
+                // Step 2: Deactivate work slot
+                await DeactivateWorkSlotAsync(appointment.Id);
+
+                // Step 3: Send email notification
+                await SendEmailNotificationAsync(appointment.Id);
+
+                // Step 4: Complete saga
+                await CompleteSagaAsync(appointment.Id);
+
+                return sagaData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Saga failed for appointment {sagaData.AppointmentId}");
+                sagaData.State = AppointmentSagaState.Failed;
+                sagaData.ErrorMessage = ex.Message;
+                
+                if (sagaData.AppointmentId > 0)
+                {
+                    await CompensateSagaAsync(sagaData.AppointmentId, ex.Message);
+                }
+                
+                throw;
+            }
+        }
+
+        private async Task DeactivateWorkSlotAsync(int appointmentId)
+        {
+            var sagaData = _sagaStates[appointmentId];
+            var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+            
+            if (appointment == null)
+                throw new InvalidOperationException($"Appointment {appointmentId} not found");
+
+            string dayOfWeek = appointment.ScheduledAt.DayOfWeek.ToString();
+            await _workSlotApiClient.DeactivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+            
+            sagaData.State = AppointmentSagaState.WorkSlotDeactivated;
+            _logger.LogInformation($"Work slot deactivated for appointment {appointmentId}");
+        }
+
+        private async Task SendEmailNotificationAsync(int appointmentId)
+        {
+            var sagaData = _sagaStates[appointmentId];
+            var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+            
+            if (appointment == null)
+                throw new InvalidOperationException($"Appointment {appointmentId} not found");
+
+            // Get lawyer profile and user info
+            var lawyerProfile = await _lawyerProfileApiClient.GetLawyerProfileByIdAsync(appointment.LawyerId);
+            if (lawyerProfile != null)
+            {
+                var lawyerUser = await _userApiClient.GetUserByIdAsync(lawyerProfile.UserId);
+                if (lawyerUser != null && !string.IsNullOrEmpty(lawyerUser.Email))
+                {
+                    string subject = "[Law Appointment App] Bạn có lịch hẹn mới từ khách hàng";
+                    string htmlBody = $@"
+                        <h2>Xin chào Luật sư,</h2>
+                        <p>Bạn vừa nhận được một lịch hẹn mới từ khách hàng thông qua hệ thống Law Appointment App.</p>
+                        <ul>
+                            <li><b>Thời gian hẹn:</b> {appointment.ScheduledAt:dd/MM/yyyy HH:mm}</li>
+                            <li><b>Mã khách hàng:</b> {appointment.UserId}</li>
+                            <li><b>Dịch vụ:</b> {string.Join(", ", appointment.Services ?? new List<string>())}</li>
+                            <li><b>Ghi chú:</b> {appointment.Note ?? "Không có"}</li>
+                        </ul>
+                        <p>Vui lòng đăng nhập vào hệ thống để xem chi tiết và xác nhận lịch hẹn.</p>
+                        <p>Trân trọng,<br/>Law Appointment App</p>";
+                    
+                    await _emailService.SendAppointmentNotificationAsync(lawyerUser.Email, subject, htmlBody);
+                }
+            }
+
+            sagaData.State = AppointmentSagaState.EmailSent;
+            _logger.LogInformation($"Email notification sent for appointment {appointmentId}");
+        }
+
+        public async Task<bool> CompleteSagaAsync(int appointmentId)
+        {
+            if (!_sagaStates.ContainsKey(appointmentId))
+                return false;
+
+            var sagaData = _sagaStates[appointmentId];
+            sagaData.State = AppointmentSagaState.Completed;
+            sagaData.CompletedAt = DateTime.UtcNow;
+            
+            _logger.LogInformation($"Saga completed for appointment {appointmentId}");
+            return true;
+        }
+
+        public async Task<bool> CompensateSagaAsync(int appointmentId, string reason)
+        {
+            if (!_sagaStates.ContainsKey(appointmentId))
+                return false;
+
+            var sagaData = _sagaStates[appointmentId];
+            sagaData.State = AppointmentSagaState.Compensating;
+            
+            try
+            {
+                var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+                if (appointment != null)
+                {
+                    // Compensate: Activate work slot back
+                    if (sagaData.State == AppointmentSagaState.WorkSlotDeactivated || 
+                        sagaData.State == AppointmentSagaState.EmailSent)
+                    {
+                        string dayOfWeek = appointment.ScheduledAt.DayOfWeek.ToString();
+                        await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+                    }
+
+                    // Compensate: Delete appointment
+                    appointment.IsDel = true;
+                    await _appointmentRepository.UpdateAsync(appointment);
+                }
+
+                sagaData.State = AppointmentSagaState.Failed;
+                sagaData.ErrorMessage = reason;
+                
+                _logger.LogInformation($"Saga compensated for appointment {appointmentId}: {reason}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to compensate saga for appointment {appointmentId}");
+                return false;
+            }
+        }
+
+        public async Task<AppointmentSagaData?> GetSagaStateAsync(int appointmentId)
+        {
+            return _sagaStates.ContainsKey(appointmentId) ? _sagaStates[appointmentId] : null;
+        }
+
+        public async Task<bool> UpdateSagaStateAsync(int appointmentId, AppointmentSagaState newState, string? errorMessage = null)
+        {
+            if (!_sagaStates.ContainsKey(appointmentId))
+                return false;
+
+            var sagaData = _sagaStates[appointmentId];
+            sagaData.State = newState;
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                sagaData.ErrorMessage = errorMessage;
+            }
+
+            return true;
+        }
+    }
+}

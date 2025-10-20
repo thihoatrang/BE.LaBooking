@@ -1,0 +1,57 @@
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+
+namespace Appointments.Application.Services
+{
+    public interface IEmailService
+    {
+        Task SendAppointmentNotificationAsync(string to, string subject, string htmlBody);
+    }
+
+    public class EmailService : IEmailService
+    {
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
+
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        {
+            _configuration = configuration;
+            _logger = logger;
+        }
+
+        public async Task SendAppointmentNotificationAsync(string to, string subject, string htmlBody)
+        {
+            try
+            {
+                var email = new MimeMessage();
+                email.From.Add(new MailboxAddress("Law Appointment App", _configuration["EmailSettings:From"]));
+                email.To.Add(new MailboxAddress("", to));
+                email.Subject = subject;
+                var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+                email.Body = bodyBuilder.ToMessageBody();
+                using var smtp = new SmtpClient();
+                await smtp.ConnectAsync(
+                    _configuration["EmailSettings:SmtpServer"],
+                    int.Parse(_configuration["EmailSettings:Port"]),
+                    SecureSocketOptions.StartTls
+                );
+                await smtp.AuthenticateAsync(
+                    _configuration["EmailSettings:Username"],
+                    _configuration["EmailSettings:Password"]
+                );
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+                _logger.LogInformation($"Appointment notification sent successfully to {to}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error sending appointment notification to {to}");
+                throw;
+            }
+        }
+    }
+} 
