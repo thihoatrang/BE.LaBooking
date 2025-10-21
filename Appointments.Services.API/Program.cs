@@ -61,9 +61,12 @@ namespace Appointments.Services.API
             builder.Services.AddScoped<IAppointmentService, AppointmentService>();
             builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<IPaymentCalculationService, PaymentCalculationService>();
+            builder.Services.AddScoped<ITransactionService, TransactionService>();
             builder.Services.AddHttpClient();
             builder.Services.AddScoped<IPaymentProvider, VnPayService>();
-            builder.Services.AddScoped<IPaymentProvider, MoMoService>();
+            builder.Services.AddScoped<IEnumerable<IPaymentProvider>>(provider => 
+                new[] { provider.GetRequiredService<IPaymentProvider>() });
             
             // Add Saga Services
             builder.Services.AddScoped<ISagaStateRepository, SagaStateRepository>();
