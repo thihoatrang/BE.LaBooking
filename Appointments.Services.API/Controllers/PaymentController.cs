@@ -1,5 +1,6 @@
 using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Application.Services.IService;
+using Appointments.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Appointments.Services.API.Controllers
@@ -11,12 +12,21 @@ namespace Appointments.Services.API.Controllers
         private readonly IEnumerable<IPaymentProvider> _providers;
         private readonly Infrastructure.Repository.IPaymentRepository _paymentRepo;
         private readonly IConfiguration _configuration;
+        private readonly IPaymentCalculationService _paymentCalculationService;
+        private readonly ITransactionService _transactionService;
 
-        public PaymentsController(IEnumerable<IPaymentProvider> providers, Infrastructure.Repository.IPaymentRepository paymentRepo, IConfiguration configuration)
+        public PaymentsController(
+            IEnumerable<IPaymentProvider> providers, 
+            Infrastructure.Repository.IPaymentRepository paymentRepo, 
+            IConfiguration configuration,
+            IPaymentCalculationService paymentCalculationService,
+            ITransactionService transactionService)
         {
             _providers = providers;
             _paymentRepo = paymentRepo;
             _configuration = configuration;
+            _paymentCalculationService = paymentCalculationService;
+            _transactionService = transactionService;
         }
 
         [HttpPost("create")]
@@ -36,9 +46,55 @@ namespace Appointments.Services.API.Controllers
             return Ok(resp);
         }
 
+        [HttpPost("create-url-for-appointment")]
+        public async Task<ActionResult<string>> CreateUrlForAppointment([FromBody] CreatePaymentForAppointmentRequestDto request, CancellationToken ct)
+        {
+            try
+            {
+                // Calculate payment amount based on lawyer's PricePerHour
+                var amount = await _paymentCalculationService.CalculatePaymentAmountAsync(request.LawyerId, request.DurationHours);
+                
+                // Generate unique order ID if not provided
+                var orderId = string.IsNullOrEmpty(request.OrderId) ? Guid.NewGuid().ToString() : request.OrderId;
+                
+                var paymentRequest = new CreatePaymentRequestDto
+                {
+                    Vendor = request.Vendor,
+                    OrderId = orderId,
+                    Amount = amount,
+                    OrderInfo = request.OrderInfo ?? $"Thanh toan cho ma GD: {orderId}",
+                    ReturnUrl = request.ReturnUrl ?? _configuration["Payments:VnPay:ReturnUrl"]
+                    // IpnUrl = request.IpnUrl ?? _configuration["Payments:VnPay:IpnUrl"] // Comment out for local development
+                };
+
+                var provider = _providers.FirstOrDefault(p => string.Equals(p.Vendor, request.Vendor, StringComparison.OrdinalIgnoreCase));
+                if (provider == null) return BadRequest(new { message = "Unsupported vendor" });
+                
+                var resp = await provider.CreateAsync(paymentRequest, ct);
+                
+                // Save initial payment record
+                await _paymentRepo.UpsertAsync(new Infrastructure.Models.Payment
+                {
+                    OrderId = orderId,
+                    Vendor = provider.Vendor,
+                    Amount = amount,
+                    Status = "pending"
+                }, ct);
+                
+                return Ok(resp.PaymentUrl);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    Error = "Failed to create payment URL", 
+                    Details = ex.Message 
+                });
+            }
+        }
+
         // VNPAY return and IPN come with query params
         [HttpGet("return")]
-        public ActionResult<PaymentStatusDto> Return()
+        public async Task<ActionResult<PaymentStatusDto>> Return()
         {
             var vendor = Request.Query["vendor"].ToString();
             var provider = _providers.FirstOrDefault(p => string.Equals(p.Vendor, vendor, StringComparison.OrdinalIgnoreCase));
@@ -53,15 +109,10 @@ namespace Appointments.Services.API.Controllers
                 status.Status = "failed";
                 status.Message = "Signature verification failed";
             }
-            // persist status
-            _ = _paymentRepo.UpsertAsync(new Infrastructure.Models.Payment
-            {
-                OrderId = status.OrderId,
-                Vendor = status.Vendor,
-                Status = status.Status,
-                TransactionId = status.TransactionId,
-                Message = status.Message
-            });
+            
+            // Update payment status and create transaction records
+            await _transactionService.UpdatePaymentStatusAsync(status.OrderId, status.Status, status.TransactionId, status.Message);
+            
             return Ok(status);
         }
 
@@ -73,30 +124,19 @@ namespace Appointments.Services.API.Controllers
             if (provider == null) return BadRequest("Unsupported vendor");
 
             var dict = Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString());
-            var signatureKey = vendor.Equals("vnpay", StringComparison.OrdinalIgnoreCase) ? "vnp_SecureHash" : "signature";
+            var signatureKey = "vnp_SecureHash"; // Only VnPay is supported now
             var verified = provider.VerifySignature(dict, signatureKey);
             var status = provider.ParseCallback(dict);
-            // TODO: update order status in DB here
+            
             if (!verified)
             {
-                if (vendor.Equals("vnpay", StringComparison.OrdinalIgnoreCase))
-                    return Ok("Invalid signature");
-                return BadRequest("invalid signature");
+                return Ok("Invalid signature");
             }
 
-            await _paymentRepo.UpsertAsync(new Infrastructure.Models.Payment
-            {
-                OrderId = status.OrderId,
-                Vendor = status.Vendor,
-                Status = status.Status,
-                TransactionId = status.TransactionId,
-                Message = status.Message
-            });
+            // Update payment status and create transaction records
+            await _transactionService.UpdatePaymentStatusAsync(status.OrderId, status.Status, status.TransactionId, status.Message);
 
-            if (vendor.Equals("vnpay", StringComparison.OrdinalIgnoreCase))
-                return Ok("OK"); // VNPAY expects a 200 OK plain text
-
-            return Ok("0"); // MoMo expects 200; custom body not strictly required here
+            return Ok("OK"); // VNPAY expects a 200 OK plain text
         }
 
         [HttpGet("status/{orderId}")]
@@ -107,59 +147,38 @@ namespace Appointments.Services.API.Controllers
             return Ok(new PaymentStatusDto { OrderId = p.OrderId, Vendor = p.Vendor, Status = p.Status, Message = p.Message, TransactionId = p.TransactionId });
         }
 
-        [HttpGet("qr")]
-        public ActionResult GetQr([FromQuery] string url)
+        [HttpGet("appointment/{orderId}")]
+        public async Task<ActionResult<object>> GetAppointmentByOrderId(string orderId)
         {
-            if (string.IsNullOrWhiteSpace(url)) return BadRequest();
-            // Simple QR via Google Chart (dev only). For prod, use a library.
-            var qrUrl = $"https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl={Uri.EscapeDataString(url)}";
-            return Redirect(qrUrl);
-        }
-
-        [HttpPost("ipn/momo")]
-        public async Task<ActionResult<object>> MoMoIpn([FromBody] MoMoIpnDto body)
-        {
-            var provider = _providers.FirstOrDefault(p => p.Vendor == "momo");
-            if (provider == null) return BadRequest();
-
-            var accessKey = _configuration["Payments:MoMo:AccessKey"] ?? string.Empty;
-
-            var dict = new Dictionary<string, string>
+            try
             {
-                ["accessKey"] = accessKey,
-                ["amount"] = body.amount.ToString(),
-                ["extraData"] = body.extraData,
-                ["message"] = body.message,
-                ["orderId"] = body.orderId,
-                ["orderInfo"] = body.orderInfo,
-                ["orderType"] = body.orderType,
-                ["partnerCode"] = body.partnerCode,
-                ["payType"] = body.payType,
-                ["requestId"] = body.requestId,
-                ["responseTime"] = body.responseTime.ToString(),
-                ["resultCode"] = body.resultCode.ToString(),
-                ["transId"] = body.transId.ToString()
-            };
+                var payment = await _paymentRepo.GetByOrderIdAsync(orderId);
+                if (payment == null)
+                {
+                    return NotFound(new { message = "Payment not found" });
+                }
 
-            var valid = provider.VerifySignature(dict, "signature");
-            var status = provider.ParseCallback(dict);
-            if (!valid)
-            {
-                return Ok(new { resultCode = 1, message = "signature invalid" });
+                // In a real implementation, you would fetch the appointment details
+                // For now, we'll return payment information
+                return Ok(new
+                {
+                    OrderId = payment.OrderId,
+                    Amount = payment.Amount,
+                    Status = payment.Status,
+                    TransactionId = payment.TransactionId,
+                    CreatedAt = payment.CreatedAt,
+                    Message = payment.Message
+                });
             }
-
-            await _paymentRepo.UpsertAsync(new Infrastructure.Models.Payment
+            catch (Exception ex)
             {
-                OrderId = status.OrderId,
-                Vendor = status.Vendor,
-                Status = status.Status,
-                TransactionId = status.TransactionId,
-                Message = status.Message,
-                Amount = body.amount
-            });
-
-            return Ok(new { resultCode = 0, message = "ok" });
+                return StatusCode(500, new { 
+                    Error = "Failed to get appointment information", 
+                    Details = ex.Message 
+                });
+            }
         }
+
     }
 }
 

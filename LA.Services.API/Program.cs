@@ -1,6 +1,8 @@
 ﻿using Lawyer.Application.Services;
 using Lawyer.Application.Services.IService;
 using Lawyer.Application.Services.Saga;
+using Lawyers.Application.Services;
+using Lawyers.Application.Services.IService;
 using Lawyers.Infrastructure.Data;
 using Lawyers.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +20,16 @@ namespace LA.Services.API
             builder.Services.AddScoped<ILawyerService, LawyerService>();
             builder.Services.AddScoped<ILawyerDiplomaService, LawyerDiplomaService>();
             builder.Services.AddScoped<IWorkSlotService, WorkSlotService>();
+            builder.Services.AddScoped<IPracticeAreaService, PracticeAreaService>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
+            
+            // Đăng ký Repository
             builder.Services.AddScoped<IWorkSlotRepository, WorkSlotRepository>();
             builder.Services.AddScoped<ILawyerDiplomaRepository, LawyerDiplomaRepository>();
             builder.Services.AddScoped<ILawyerProfileRepository, LawyerProfileRepository>();
+            builder.Services.AddScoped<ILawyerPracticeAreaRepository, LawyerPracticeAreaRepository>();
+            builder.Services.AddScoped<IPracticeAreaRepository, PracticeAreaRepository>();
+            builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
             
             // Add Saga Services
             builder.Services.AddScoped<ILawyerSagaService, LawyerSagaService>();

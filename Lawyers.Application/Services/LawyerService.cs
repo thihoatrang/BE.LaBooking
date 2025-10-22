@@ -11,11 +11,13 @@ namespace Lawyer.Application.Services
     public class LawyerService : ILawyerService
     {
         private readonly ILawyerProfileRepository _profileRepository;
+        private readonly ILawyerPracticeAreaRepository _lawyerPracticeAreaRepository;
         private readonly IMapper _mapper;
 
-        public LawyerService(ILawyerProfileRepository profileRepository, IMapper mapper)
+        public LawyerService(ILawyerProfileRepository profileRepository, ILawyerPracticeAreaRepository lawyerPracticeAreaRepository, IMapper mapper)
         {
             _profileRepository = profileRepository;
+            _lawyerPracticeAreaRepository = lawyerPracticeAreaRepository;
             _mapper = mapper;
         }
 
@@ -27,7 +29,7 @@ namespace Lawyer.Application.Services
 
         public async Task<LawyerProfileDTO?> GetLawyerByIdAsync(int id)
         {
-            var lawyer = await _profileRepository.GetByIdAsync(id);
+            var lawyer = await _profileRepository.GetByIdWithPracticeAreasAsync(id);
             return lawyer == null ? null : _mapper.Map<LawyerProfileDTO>(lawyer);
         }
 
@@ -49,8 +51,7 @@ namespace Lawyer.Application.Services
 
         public async Task<LawyerProfileDTO?> GetLawyerByUserIdAsync(int userId)
         {
-            var lawyers = await _profileRepository.GetAllAsync();
-            var lawyer = lawyers.FirstOrDefault(l => l.UserId == userId);
+            var lawyer = await _profileRepository.GetByUserIdAsync(userId);
             return lawyer == null ? null : _mapper.Map<LawyerProfileDTO>(lawyer);
         }
 
@@ -61,13 +62,14 @@ namespace Lawyer.Application.Services
             await _profileRepository.DeleteAsync(id);
             return true;
         }
+        
         public async Task<LawyerProfileDTO?> UpdateLawyerProfileAsync(int id, UpdateLawyerDTO dto)
         {
             var lawyer = await _profileRepository.GetByIdAsync(id);
             if (lawyer == null) return null;
+            
             // Cập nhật các trường từ DTO
             lawyer.Bio = dto.Bio;
-            lawyer.Spec = dto.Spec ?? new List<string>();
             lawyer.LicenseNum = dto.LicenseNum;
             lawyer.ExpYears = dto.ExpYears;
             lawyer.Description = dto.Description;
@@ -76,8 +78,22 @@ namespace Lawyer.Application.Services
             lawyer.Img = dto.Img;
             lawyer.DayOfWeek = dto.DayOfWeek;
             lawyer.WorkTime = dto.WorkTime;
+            lawyer.UpdatedAt = DateTime.UtcNow;
+            
+            // Xóa các practice areas cũ và thêm mới
+            await _lawyerPracticeAreaRepository.DeleteByLawyerIdAsync(id);
+            
+            foreach (var practiceAreaId in dto.PracticeAreaIds)
+            {
+                await _lawyerPracticeAreaRepository.AddAsync(new LawyerPracticeArea
+                {
+                    LawyerId = id,
+                    PracticeAreaId = practiceAreaId
+                });
+            }
+            
             await _profileRepository.UpdateAsync(lawyer);
-            return _mapper.Map<LawyerProfileDTO>(lawyer);
+            return _mapper.Map<LawyerProfileDTO>(await _profileRepository.GetByIdWithPracticeAreasAsync(id));
         }
     }
 }

@@ -12,16 +12,19 @@ namespace Lawyer.Application.Services.Saga
     {
         private readonly ILawyerProfileRepository _lawyerRepository;
         private readonly IWorkSlotRepository _workSlotRepository;
+        private readonly ILawyerPracticeAreaRepository _lawyerPracticeAreaRepository;
         private readonly ILogger<LawyerSagaService> _logger;
         private readonly Dictionary<int, LawyerSagaData> _sagaStates = new();
 
         public LawyerSagaService(
             ILawyerProfileRepository lawyerRepository,
             IWorkSlotRepository workSlotRepository,
+            ILawyerPracticeAreaRepository lawyerPracticeAreaRepository,
             ILogger<LawyerSagaService> logger)
         {
             _lawyerRepository = lawyerRepository;
             _workSlotRepository = workSlotRepository;
+            _lawyerPracticeAreaRepository = lawyerPracticeAreaRepository;
             _logger = logger;
         }
 
@@ -31,7 +34,6 @@ namespace Lawyer.Application.Services.Saga
             {
                 UserId = dto.UserId,
                 Bio = dto.Bio,
-                Spec = string.Join(",", dto.Spec ?? new List<string>()),
                 LicenseNum = dto.LicenseNum,
                 ExpYears = dto.ExpYears,
                 Description = dto.Description,
@@ -51,7 +53,6 @@ namespace Lawyer.Application.Services.Saga
                 {
                     UserId = dto.UserId,
                     Bio = dto.Bio,
-                    Spec = dto.Spec ?? new List<string>(),
                     LicenseNum = dto.LicenseNum,
                     ExpYears = dto.ExpYears,
                     Description = dto.Description,
@@ -68,10 +69,13 @@ namespace Lawyer.Application.Services.Saga
 
                 _logger.LogInformation($"Lawyer creation saga started for lawyer {lawyer.Id}");
 
-                // Step 2: Create work slots
+                // Step 2: Create practice area relationships
+                await CreatePracticeAreaRelationshipsAsync(lawyer.Id, dto.PracticeAreas);
+
+                // Step 3: Create work slots
                 await CreateWorkSlotsAsync(lawyer.Id);
 
-                // Step 3: Complete saga
+                // Step 4: Complete saga
                 await CompleteSagaAsync(lawyer.Id);
 
                 return sagaData;
@@ -98,7 +102,6 @@ namespace Lawyer.Application.Services.Saga
                 LawyerId = id,
                 UserId = dto.UserId,
                 Bio = dto.Bio,
-                Spec = string.Join(",", dto.Spec ?? new List<string>()),
                 LicenseNum = dto.LicenseNum,
                 ExpYears = dto.ExpYears,
                 Description = dto.Description,
@@ -119,7 +122,6 @@ namespace Lawyer.Application.Services.Saga
                     throw new InvalidOperationException($"Lawyer {id} not found");
 
                 lawyer.Bio = dto.Bio;
-                lawyer.Spec = dto.Spec;
                 lawyer.LicenseNum = dto.LicenseNum;
                 lawyer.ExpYears = dto.ExpYears;
                 lawyer.Description = dto.Description;
@@ -134,10 +136,13 @@ namespace Lawyer.Application.Services.Saga
 
                 _logger.LogInformation($"Lawyer update saga started for lawyer {id}");
 
-                // Step 2: Update work slots if needed
+                // Step 2: Update practice area relationships
+                await UpdatePracticeAreaRelationshipsAsync(id, dto.PracticeAreas);
+
+                // Step 3: Update work slots if needed
                 await UpdateWorkSlotsAsync(id);
 
-                // Step 3: Complete saga
+                // Step 4: Complete saga
                 await CompleteSagaAsync(id);
 
                 return sagaData;
@@ -265,6 +270,12 @@ namespace Lawyer.Application.Services.Saga
             
             try
             {
+                // Compensate: Delete practice area relationships
+                if (sagaData.PracticeAreaIds.Any())
+                {
+                    await _lawyerPracticeAreaRepository.DeleteByLawyerIdAsync(lawyerId);
+                }
+
                 // Compensate: Delete work slots
                 if (sagaData.State == LawyerSagaState.WorkSlotsCreated)
                 {
@@ -312,6 +323,40 @@ namespace Lawyer.Application.Services.Saga
             }
 
             return true;
+        }
+
+        private async Task CreatePracticeAreaRelationshipsAsync(int lawyerId, List<PracticeAreaDTO> practiceAreas)
+        {
+            var sagaData = _sagaStates[lawyerId];
+            
+            foreach (var practiceArea in practiceAreas)
+            {
+                var lawyerPracticeArea = new LawyerPracticeArea
+                {
+                    LawyerId = lawyerId,
+                    PracticeAreaId = practiceArea.Id
+                };
+
+                await _lawyerPracticeAreaRepository.AddAsync(lawyerPracticeArea);
+                sagaData.PracticeAreaIds.Add(practiceArea.Id);
+            }
+
+            sagaData.State = LawyerSagaState.ProfileCreated;
+            _logger.LogInformation($"Practice area relationships created for lawyer {lawyerId}");
+        }
+
+        private async Task UpdatePracticeAreaRelationshipsAsync(int lawyerId, List<PracticeAreaDTO> practiceAreas)
+        {
+            var sagaData = _sagaStates[lawyerId];
+            
+            // Delete existing relationships
+            await _lawyerPracticeAreaRepository.DeleteByLawyerIdAsync(lawyerId);
+            sagaData.PracticeAreaIds.Clear();
+
+            // Create new relationships
+            await CreatePracticeAreaRelationshipsAsync(lawyerId, practiceAreas);
+
+            _logger.LogInformation($"Practice area relationships updated for lawyer {lawyerId}");
         }
     }
 }

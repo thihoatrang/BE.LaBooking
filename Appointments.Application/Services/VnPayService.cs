@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Application.Services.IService;
@@ -24,7 +24,7 @@ namespace Appointments.Application.Services
             var hashSecret = settings["HashSecret"] ?? string.Empty;
             var baseUrl = settings["BaseUrl"] ?? string.Empty;
             var returnUrl = request.ReturnUrl ?? settings["ReturnUrl"] ?? string.Empty;
-            var ipnUrl = request.IpnUrl ?? settings["IpnUrl"] ?? string.Empty;
+            // var ipnUrl = request.IpnUrl ?? settings["IpnUrl"] ?? string.Empty; // Comment out for local development
             var locale = settings["Locale"] ?? "vn";
             var currCode = settings["CurrCode"] ?? "VND";
 
@@ -36,8 +36,8 @@ namespace Appointments.Application.Services
             var vnp_Amount = request.Amount * 100; // in VND x100 per VNPAY rules
             var vnp_Locale = locale;
             var vnp_ReturnUrl = returnUrl;
-            var vnp_IpAddr = "0.0.0.0"; // could extract from HttpContext if available
-            var vnp_CreateDate = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            var vnp_IpAddr = "113.161.78.90"; // could extract from HttpContext if available
+            var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
 
             var parameters = new SortedDictionary<string, string>
             {
@@ -55,14 +55,22 @@ namespace Appointments.Application.Services
                 ["vnp_CreateDate"] = vnp_CreateDate
             };
 
-            if (!string.IsNullOrEmpty(ipnUrl))
-            {
-                parameters["vnp_IpnUrl"] = ipnUrl;
-            }
+            // Skip IPN URL for local development - VNPay cannot reach localhost
+            // if (!string.IsNullOrEmpty(ipnUrl))
+            // {
+            //     parameters["vnp_IpnUrl"] = ipnUrl;
+            // }
 
-            var query = BuildQuery(parameters);
-            var signData = query;
+            // 1️⃣ Tạo chuỗi raw để ký
+            var signData = BuildRawStringForSign(parameters);
+
+            // 2️⃣ Tạo hash
             var vnp_SecureHash = HmacSHA512(hashSecret, signData);
+
+            // 3️⃣ Tạo query có encode cho URL redirect
+            var query = BuildUrlEncodedQuery(parameters);
+
+            // 4️⃣ Gắn hash cuối cùng
             var paymentUrl = $"{baseUrl}?{query}&vnp_SecureHash={vnp_SecureHash}";
 
             return await Task.FromResult(new CreatePaymentResponseDto
@@ -124,6 +132,20 @@ namespace Appointments.Application.Services
             using var hmac = new HMACSHA512(keyBytes);
             var hash = hmac.ComputeHash(dataBytes);
             return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        private static string BuildRawStringForSign(IDictionary<string, string> parameters)
+        {
+            return string.Join("&", parameters
+                .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                .Select(kv => $"{kv.Key}={kv.Value}"));
+        }
+
+        private static string BuildUrlEncodedQuery(IDictionary<string, string> parameters)
+        {
+            return string.Join("&", parameters
+                .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
         }
     }
 }

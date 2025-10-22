@@ -18,7 +18,6 @@ namespace Lawyers.Infrastructure.Models.Saga
         public int LawyerId { get; set; }
         public int UserId { get; set; }
         public string Bio { get; set; } = string.Empty;
-        public string Spec { get; set; } = string.Empty;
         public string LicenseNum { get; set; } = string.Empty;
         public int ExpYears { get; set; }
         public string Description { get; set; } = string.Empty;
@@ -32,5 +31,6 @@ namespace Lawyers.Infrastructure.Models.Saga
         public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public List<int> WorkSlotIds { get; set; } = new();
+        public List<int> PracticeAreaIds { get; set; } = new();
     }
 }

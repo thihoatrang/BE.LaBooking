@@ -31,9 +31,8 @@ namespace LA.Services.API.Controllers
             try
             {
                 var lawyers = await _service.GetAllLawyersAsync();
-
-                var dtoList = _mapper.Map<IEnumerable<LawyerProfileDTO>>(lawyers);
-                response.Result = dtoList;
+                response.Result = lawyers;
+                response.IsSuccess = true;
             }
             catch (Exception ex)
             {

@@ -155,6 +155,6 @@
   ],
   "GlobalConfiguration": {
     "RequestIdKey": "OcRequestId",
-    "DangerousAcceptAnyServerCertificateValidator": true,
+    "DangerousAcceptAnyServerCertificateValidator": true
   }
 }
