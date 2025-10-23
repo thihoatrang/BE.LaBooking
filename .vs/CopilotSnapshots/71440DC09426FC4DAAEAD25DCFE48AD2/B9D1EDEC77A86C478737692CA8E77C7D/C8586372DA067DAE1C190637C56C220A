@@ -1,4 +1,4 @@
-using Appointments.Infrastructure.Models.Dtos;
+﻿using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -70,9 +70,9 @@ namespace Appointments.Application.Services
                 await _paymentRepository.UpsertAsync(payment);
 
                 // If payment is successful, create transaction records
-                if (status == "success" && payment.Amount.HasValue)
+                if (status == "success")
                 {
-                    await CreateTransactionRecordsAsync(orderId, payment.Amount.Value);
+                    await CreateTransactionRecordsAsync(orderId, payment.Amount);
                 }
 
                 _logger.LogInformation($"Payment status updated: OrderId={orderId}, Status={status}");

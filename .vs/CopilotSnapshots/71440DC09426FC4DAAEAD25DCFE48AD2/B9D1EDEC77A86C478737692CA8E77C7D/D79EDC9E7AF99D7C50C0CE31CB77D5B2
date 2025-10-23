@@ -1,0 +1,169 @@
+﻿using Appointments.Infrastructure.Data;
+using Appointments.Infrastructure.Models;
+using Appointments.Infrastructure.Models.Enums;
+using Appointments.Application.Services.IService;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Appointments.Application.Services;
+using Appointments.Infrastructure.Repository;
+using Appointments.Infrastructure.Models.Dtos;
+
+namespace Appointments.Application.Services
+{
+    public class AppointmentService : IAppointmentService
+    {
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly WorkSlotApiClient _workSlotApiClient;
+        private readonly LawyerProfileApiClient _lawyerProfileApiClient;
+        private readonly UserApiClient _userApiClient;
+        private readonly IEmailService _emailService;
+
+        public AppointmentService(
+            IAppointmentRepository appointmentRepository,
+            WorkSlotApiClient workSlotApiClient,
+            LawyerProfileApiClient lawyerProfileApiClient,
+            UserApiClient userApiClient,
+            IEmailService emailService)
+        {
+            _appointmentRepository = appointmentRepository;
+            _workSlotApiClient = workSlotApiClient;
+            _lawyerProfileApiClient = lawyerProfileApiClient;
+            _userApiClient = userApiClient;
+            _emailService = emailService;
+        }
+        public async Task<Appointment> CreateAppointmentAsync(CreateAppointmentDTO dto)
+        {
+            var appointment = new Appointment
+            {
+                UserId = dto.UserId,
+                LawyerId = dto.LawyerId,
+                ScheduledAt = dto.ScheduledAt,
+                Slot = dto.Slot,
+                CreateAt = DateTime.UtcNow,
+                Spec = dto.Spec,
+                Services = dto.Services ?? new List<string>(),
+                Status = AppointmentStatus.Pending,
+                IsDel = false,
+                Note = dto.Note
+            };
+
+            await _appointmentRepository.AddAsync(appointment);
+
+            // Gọi sang LA.Services.API để deactivate workslot
+            string dayOfWeek = appointment.ScheduledAt.DayOfWeek.ToString();
+            await _workSlotApiClient.DeactivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+
+            // Lấy email của lawyer và gửi mail
+            var lawyerProfile = await _lawyerProfileApiClient.GetLawyerProfileByIdAsync(appointment.LawyerId);
+            if (lawyerProfile != null)
+            {
+                var lawyerUser = await _userApiClient.GetUserByIdAsync(lawyerProfile.UserId);
+                if (lawyerUser != null && !string.IsNullOrEmpty(lawyerUser.Email))
+                {
+                    string subject = "[Law Appointment App] Bạn có lịch hẹn mới từ khách hàng";
+                    string htmlBody = $@"
+                        <h2>Xin chào Luật sư,</h2>
+                        <p>Bạn vừa nhận được một lịch hẹn mới từ khách hàng thông qua hệ thống Law Appointment App.</p>
+                        <ul>
+                            <li><b>Thời gian hẹn:</b> {appointment.ScheduledAt:dd/MM/yyyy HH:mm}</li>
+                            <li><b>Mã khách hàng:</b> {appointment.UserId}</li>
+                            <li><b>Dịch vụ:</b> {string.Join(", ", appointment.Services ?? new List<string>())}</li>
+                            <li><b>Ghi chú:</b> {appointment.Note ?? "Không có"}</li>
+                        </ul>
+                        <p>Vui lòng đăng nhập vào hệ thống để xem chi tiết và xác nhận lịch hẹn.</p>
+                        <p>Trân trọng,<br/>Law Appointment App</p>";
+                    await _emailService.SendAppointmentNotificationAsync(lawyerUser.Email, subject, htmlBody);
+                }
+            }
+
+            return appointment;
+        }
+
+        public async Task<bool> UpdateConfirmedStatusAsync(int id)
+        {
+            var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null) return false;
+
+            appointment.Status = AppointmentStatus.Confirmed;
+            await _appointmentRepository.UpdateAsync(appointment);
+
+            // Gửi mail cho customer khi xác nhận lịch hẹn
+            var customer = await _userApiClient.GetUserByIdAsync(appointment.UserId);
+            if (customer != null && !string.IsNullOrEmpty(customer.Email))
+            {
+                string subject = "[Law Appointment App] Lịch hẹn của bạn đã được xác nhận";
+                string htmlBody = $@"
+                    <h2>Xin chào {customer.FullName ?? "bạn"},</h2>
+                    <p>Lịch hẹn của bạn với luật sư đã được xác nhận thành công.</p>
+                    <ul>
+                        <li><b>Thời gian hẹn:</b> {appointment.ScheduledAt:dd/MM/yyyy HH:mm}</li>
+                        <li><b>Dịch vụ:</b> {string.Join(", ", appointment.Services ?? new List<string>())}</li>
+                        <li><b>Ghi chú:</b> {appointment.Note ?? "Không có"}</li>
+                    </ul>
+                    <p>Vui lòng đăng nhập vào hệ thống để xem chi tiết.</p>
+                    <p>Trân trọng,<br/>Law Appointment App</p>";
+                await _emailService.SendAppointmentNotificationAsync(customer.Email, subject, htmlBody);
+            }
+
+            return true;
+        }
+
+        public async Task<bool> UpdateCancelledStatusAsync(int id)
+        {
+            var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null) return false;
+
+            appointment.Status = AppointmentStatus.Cancelled;
+            await _appointmentRepository.UpdateAsync(appointment);
+
+            // Kích hoạt lại workslot
+            string dayOfWeek = appointment.ScheduledAt.DayOfWeek.ToString();
+            await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+
+            return true;
+        }
+
+        public async Task<bool> UpdateCompletedStatusAsync(int id)
+        {
+            var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null) return false;
+
+            appointment.Status = AppointmentStatus.Completed;
+            await _appointmentRepository.UpdateAsync(appointment);
+
+            // Kích hoạt lại workslot
+            string dayOfWeek = appointment.ScheduledAt.DayOfWeek.ToString();
+            await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+
+            return true;
+        }
+
+        public async Task<bool> DeleteStatusAsync(int id)
+        {
+            var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null) return false;
+
+            appointment.IsDel = true;
+            await _appointmentRepository.UpdateAsync(appointment);
+            return true;
+        }
+        //UPDATE
+        public async Task<Appointment?> UpdateAppointmentAsync(int id, UpdateAppointmentDTO dto)
+        {
+            var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null || appointment.IsDel) return null;
+
+            appointment.LawyerId = dto.LawyerId;
+            appointment.ScheduledAt = dto.ScheduledAt;
+            appointment.Slot = dto.Slot;
+            appointment.Spec = dto.Spec;
+            appointment.Services = dto.Services ?? new List<string>();
+            appointment.Note = dto.Note;
+
+            await _appointmentRepository.UpdateAsync(appointment);
+            return appointment;
+        }
+    }
+}

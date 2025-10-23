@@ -134,32 +134,32 @@ namespace Appointments.Application.Services
  if (appointment == null) return false;
 
  appointment.Status = (int)AppointmentStatus.Cancelled;
-  await _appointmentRepository.UpdateAsync(appointment);
+            await _appointmentRepository.UpdateAsync(appointment);
 
      // Kích hoạt lại workslot
-    if (appointment.ScheduledAt.HasValue && !string.IsNullOrEmpty(appointment.Slot))
+      if (appointment.ScheduledAt.HasValue)
      {
-  DateTime appointmentDateTime = appointment.ScheduledAt.Value.ToDateTime(TimeOnly.MinValue);
+       DateTime appointmentDateTime = appointment.ScheduledAt.Value.ToDateTime(TimeOnly.MinValue);
       string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
- await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
+     await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
     }
 
-    return true;
+         return true;
         }
 
-     public async Task<bool> UpdateCompletedStatusAsync(int id)
+        public async Task<bool> UpdateCompletedStatusAsync(int id)
         {
-   var appointment = await _appointmentRepository.GetByIdAsync(id);
-  if (appointment == null) return false;
+      var appointment = await _appointmentRepository.GetByIdAsync(id);
+            if (appointment == null) return false;
 
-appointment.Status = (int)AppointmentStatus.Completed;
-  await _appointmentRepository.UpdateAsync(appointment);
+       appointment.Status = (int)AppointmentStatus.Completed;
+    await _appointmentRepository.UpdateAsync(appointment);
 
       // Kích hoạt lại workslot
-     if (appointment.ScheduledAt.HasValue && !string.IsNullOrEmpty(appointment.Slot))
-   {
+     if (appointment.ScheduledAt.HasValue)
+            {
       DateTime appointmentDateTime = appointment.ScheduledAt.Value.ToDateTime(TimeOnly.MinValue);
-      string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
+              string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
                 await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot, dayOfWeek, appointment.LawyerId);
    }
 

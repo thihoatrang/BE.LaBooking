@@ -1,44 +1,26 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Appointments.Infrastructure.Models.Enums;
+﻿namespace Appointments.Infrastructure.Models;
 
-namespace Appointments.Infrastructure.Models
+public partial class Appointment
 {
-    public class Appointment
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+    public int Id { get; set; }
 
-        [Required]
-        public int UserId { get; set; }
+    public int UserId { get; set; }
 
-        [Required]
-        public int LawyerId { get; set; }
+    public int LawyerId { get; set; }
 
-        [Required]
-       
-        public DateTime ScheduledAt { get; set; }
+    public DateOnly? ScheduledAt { get; set; }
 
-        [Required]
-        public string Slot { get; set; }
+    public string? Slot { get; set; }
 
-        [Required]
-    
-        public DateTime CreateAt { get; set; }
+    public DateOnly? CreateAt { get; set; }
 
-        [Required]
-        public AppointmentStatus Status { get; set; }
+    public int Status { get; set; }
 
-        [Required]
-        public bool IsDel { get; set; }
+    public bool IsDel { get; set; }
 
-        public string? Note { get; set; }
+    public string? Note { get; set; }
 
-        [Required]
-        public string Spec { get; set; }
+    public string Spec { get; set; } = null!;
 
-        [Required]
-        public List<string> Services { get; set; }
-    }
-} 
+    public string Services { get; set; } = null!;
+}
