@@ -1,4 +1,4 @@
-using Appointments.Infrastructure.Models.Dtos;
+﻿using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

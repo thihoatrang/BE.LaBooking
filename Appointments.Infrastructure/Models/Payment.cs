@@ -1,23 +1,33 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
 
-namespace Appointments.Infrastructure.Models
+namespace Appointments.Infrastructure.Models;
+
+public partial class Payment
 {
-    public class Payment
-    {
-        [Key]
-        public int Id { get; set; }
-        [Required]
-        public string OrderId { get; set; } = string.Empty;
-        [Required]
-        public string Vendor { get; set; } = string.Empty; // vnpay|momo
-        public long Amount { get; set; }
-        [Required]
-        public string Status { get; set; } = "pending"; // pending|success|failed
-        public string? TransactionId { get; set; }
-        public string? Message { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? UpdatedAt { get; set; }
-    }
+    public int Id { get; set; }
+
+    public string OrderId { get; set; } = null!;
+
+    public string Vendor { get; set; } = null!;
+
+    public long? Amount { get; set; }
+
+    public string Status { get; set; } = null!;
+
+    public string? TransactionId { get; set; }
+
+    public string? Message { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public string? BankCode { get; set; }
+
+    public string? BankTranNo { get; set; }
+
+    public string? PayDate { get; set; }
+
+    public string? OrderInfo { get; set; }
 }
-
-

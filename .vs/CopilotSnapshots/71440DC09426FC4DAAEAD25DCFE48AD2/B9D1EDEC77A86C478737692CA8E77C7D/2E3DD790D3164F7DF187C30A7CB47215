@@ -1,4 +1,4 @@
-using Appointments.Infrastructure.Models;
+﻿using Appointments.Infrastructure.Models;
 using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Infrastructure.Models.Enums;
 using Appointments.Infrastructure.Models.Saga;
