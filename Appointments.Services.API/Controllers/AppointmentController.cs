@@ -136,24 +136,24 @@ namespace Appointments.Services.API.Controllers
             }
         }
 
-        [HttpGet("{id}/saga-state")]
-        public async Task<IActionResult> GetSagaState(int id)
-        {
-            try
-            {
-                var sagaState = await _sagaService.GetSagaStateAsync(id);
-                if (sagaState == null) return NotFound();
+        //[HttpGet("{id}/saga-state")]
+        //public async Task<IActionResult> GetSagaState(int id)
+        //{
+        //    try
+        //    {
+        //        var sagaState = await _sagaService.GetSagaStateAsync(id);
+        //        if (sagaState == null) return NotFound();
                 
-                return Ok(sagaState);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { 
-                    Error = "Failed to get saga state", 
-                    Details = ex.Message 
-                });
-            }
-        }
+        //        return Ok(sagaState);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { 
+        //            Error = "Failed to get saga state", 
+        //            Details = ex.Message 
+        //        });
+        //    }
+        //}
 
     }
 }

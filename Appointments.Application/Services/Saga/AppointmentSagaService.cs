@@ -94,12 +94,12 @@ namespace Appointments.Application.Services.Saga
                 _logger.LogError(ex, $"Saga failed for appointment {sagaData.AppointmentId}");
                 sagaData.State = AppointmentSagaState.Failed;
                 sagaData.ErrorMessage = ex.Message;
-                
+
                 if (sagaData.AppointmentId > 0)
                 {
                     await CompensateSagaAsync(sagaData.AppointmentId, ex.Message);
                 }
-                
+
                 throw;
             }
         }
@@ -108,7 +108,7 @@ namespace Appointments.Application.Services.Saga
         {
             var sagaData = _sagaStates[appointmentId];
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
-            
+
             if (appointment == null)
                 throw new InvalidOperationException($"Appointment {appointmentId} not found");
 
@@ -118,7 +118,7 @@ namespace Appointments.Application.Services.Saga
                 string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
                 await _workSlotApiClient.DeactivateWorkSlotAsync(appointment.Slot ?? string.Empty, dayOfWeek, appointment.LawyerId);
             }
-            
+
             sagaData.State = AppointmentSagaState.WorkSlotDeactivated;
             _logger.LogInformation($"Work slot deactivated for appointment {appointmentId}");
         }
@@ -127,7 +127,7 @@ namespace Appointments.Application.Services.Saga
         {
             var sagaData = _sagaStates[appointmentId];
             var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
-            
+
             if (appointment == null)
                 throw new InvalidOperationException($"Appointment {appointmentId} not found");
 
@@ -139,13 +139,13 @@ namespace Appointments.Application.Services.Saga
                 if (lawyerUser != null && !string.IsNullOrEmpty(lawyerUser.Email))
                 {
                     // Deserialize services for email content
-                    var servicesList = string.IsNullOrEmpty(appointment.Services) ? 
-                        new List<string>() : 
+                    var servicesList = string.IsNullOrEmpty(appointment.Services) ?
+                        new List<string>() :
                         JsonSerializer.Deserialize<List<string>>(appointment.Services) ?? new List<string>();
-    
+
                     // Convert DateOnly to DateTime for display
                     DateTime appointmentDateTime = appointment.ScheduledAt?.ToDateTime(TimeOnly.MinValue) ?? DateTime.MinValue;
-   
+
                     string subject = "[Law Appointment App] Bạn có lịch hẹn mới từ khách hàng";
                     string htmlBody = $@"
                         <h2>Xin chào Luật sư,</h2>
@@ -158,7 +158,7 @@ namespace Appointments.Application.Services.Saga
                         </ul>
                         <p>Vui lòng đăng nhập vào hệ thống để xem chi tiết và xác nhận lịch hẹn.</p>
                         <p>Trân trọng,<br/>Law Appointment App</p>";
-                    
+
                     await _emailService.SendAppointmentNotificationAsync(lawyerUser.Email, subject, htmlBody);
                 }
             }
@@ -173,75 +173,75 @@ namespace Appointments.Application.Services.Saga
                 return Task.FromResult(false);
 
             var sagaData = _sagaStates[appointmentId];
-   sagaData.State = AppointmentSagaState.Completed;
-  sagaData.CompletedAt = DateTime.UtcNow;
- 
-       _logger.LogInformation($"Saga completed for appointment {appointmentId}");
-      return Task.FromResult(true);
+            sagaData.State = AppointmentSagaState.Completed;
+            sagaData.CompletedAt = DateTime.UtcNow;
+
+            _logger.LogInformation($"Saga completed for appointment {appointmentId}");
+            return Task.FromResult(true);
         }
 
         public async Task<bool> CompensateSagaAsync(int appointmentId, string reason)
         {
             if (!_sagaStates.ContainsKey(appointmentId))
- return false;
+                return false;
 
             var sagaData = _sagaStates[appointmentId];
-         sagaData.State = AppointmentSagaState.Compensating;
-            
-try
-      {
-      var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
+            sagaData.State = AppointmentSagaState.Compensating;
+
+            try
+            {
+                var appointment = await _appointmentRepository.GetByIdAsync(appointmentId);
                 if (appointment != null)
-       {
-          // Compensate: Activate work slot back
-      if (sagaData.State == AppointmentSagaState.WorkSlotDeactivated || 
-   sagaData.State == AppointmentSagaState.EmailSent)
-          {
- if (appointment.ScheduledAt.HasValue)
-               {
-  DateTime appointmentDateTime = appointment.ScheduledAt.Value.ToDateTime(TimeOnly.MinValue);
-string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
-       await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot ?? string.Empty, dayOfWeek, appointment.LawyerId);
-           }
-    }
+                {
+                    // Compensate: Activate work slot back
+                    if (sagaData.State == AppointmentSagaState.WorkSlotDeactivated ||
+                 sagaData.State == AppointmentSagaState.EmailSent)
+                    {
+                        if (appointment.ScheduledAt.HasValue)
+                        {
+                            DateTime appointmentDateTime = appointment.ScheduledAt.Value.ToDateTime(TimeOnly.MinValue);
+                            string dayOfWeek = appointmentDateTime.DayOfWeek.ToString();
+                            await _workSlotApiClient.ActivateWorkSlotAsync(appointment.Slot ?? string.Empty, dayOfWeek, appointment.LawyerId);
+                        }
+                    }
 
-         // Compensate: Delete appointment
-   appointment.IsDel = true;
-           await _appointmentRepository.UpdateAsync(appointment);
-       }
+                    // Compensate: Delete appointment
+                    appointment.IsDel = true;
+                    await _appointmentRepository.UpdateAsync(appointment);
+                }
 
-         sagaData.State = AppointmentSagaState.Failed;
-        sagaData.ErrorMessage = reason;
-  
-          _logger.LogInformation($"Saga compensated for appointment {appointmentId}: {reason}");
-    return true;
-       }
-   catch (Exception ex)
-         {
-             _logger.LogError(ex, $"Failed to compensate saga for appointment {appointmentId}");
-          return false;
-}
+                sagaData.State = AppointmentSagaState.Failed;
+                sagaData.ErrorMessage = reason;
+
+                _logger.LogInformation($"Saga compensated for appointment {appointmentId}: {reason}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to compensate saga for appointment {appointmentId}");
+                return false;
+            }
         }
 
         public Task<AppointmentSagaData?> GetSagaStateAsync(int appointmentId)
-   {
-        var result = _sagaStates.ContainsKey(appointmentId) ? _sagaStates[appointmentId] : null;
+        {
+            var result = _sagaStates.ContainsKey(appointmentId) ? _sagaStates[appointmentId] : null;
             return Task.FromResult(result);
         }
 
         public Task<bool> UpdateSagaStateAsync(int appointmentId, AppointmentSagaState newState, string? errorMessage = null)
-      {
-      if (!_sagaStates.ContainsKey(appointmentId))
-        return Task.FromResult(false);
+        {
+            if (!_sagaStates.ContainsKey(appointmentId))
+                return Task.FromResult(false);
 
-         var sagaData = _sagaStates[appointmentId];
+            var sagaData = _sagaStates[appointmentId];
             sagaData.State = newState;
-       if (!string.IsNullOrEmpty(errorMessage))
+            if (!string.IsNullOrEmpty(errorMessage))
             {
-           sagaData.ErrorMessage = errorMessage;
+                sagaData.ErrorMessage = errorMessage;
             }
 
- return Task.FromResult(true);
-  }
+            return Task.FromResult(true);
+        }
     }
 }
