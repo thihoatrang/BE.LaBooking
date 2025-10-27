@@ -1,7 +1,8 @@
-using AutoMapper;
-using Lawyers.Infrastructure.Models.Dtos;
+﻿using AutoMapper;
 using Lawyers.Application.Services.IService;
+using Lawyers.Infrastructure.Models.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LA.Services.API.Controllers
 {
@@ -19,6 +20,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Xem tất cả dịch vụ")]
         public async Task<ActionResult<ResponseDto<IEnumerable<ServiceDTO>>>> GetAll()
         {
             var response = new ResponseDto<IEnumerable<ServiceDTO>>();
@@ -40,6 +43,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(
+        Summary = "Tạo dịch vụ")]
         public async Task<ActionResult<ResponseDto<ServiceDTO>>> GetById(int id)
         {
             var response = new ResponseDto<ServiceDTO>();
@@ -68,6 +73,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("practice-area/{practiceAreaId}")]
+        [SwaggerOperation(
+        Summary = "Tìm dịch vụ bằng id lĩnh vực")]
         public async Task<ActionResult<ResponseDto<IEnumerable<ServiceDTO>>>> GetByPracticeAreaId(int practiceAreaId)
         {
             var response = new ResponseDto<IEnumerable<ServiceDTO>>();
@@ -89,6 +96,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("code/{code}")]
+        [SwaggerOperation(
+        Summary = "Tìm dịch vụ bằng mã lĩnh vực")]
         public async Task<ActionResult<ResponseDto<ServiceDTO>>> GetByCode(string code)
         {
             var response = new ResponseDto<ServiceDTO>();
@@ -117,6 +126,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(
+        Summary = "Tạo dịch vụ")]
         public async Task<ActionResult<ResponseDto<ServiceDTO>>> Create([FromBody] ServiceCreateDTO dto)
         {
             var response = new ResponseDto<ServiceDTO>();
@@ -140,6 +151,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(
+        Summary = "Sửa dịch vụ")]
         public async Task<ActionResult<ResponseDto<ServiceDTO>>> Update(int id, [FromBody] ServiceUpdateDTO dto)
         {
             var response = new ResponseDto<ServiceDTO>();
@@ -170,6 +183,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa dịch vụ")]
         public async Task<ActionResult<ResponseDto<object>>> Delete(int id)
         {
             var response = new ResponseDto<object>();

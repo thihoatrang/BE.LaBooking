@@ -8,6 +8,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Chat API", Version = "v1" });
+    c.EnableAnnotations();
     c.AddServer(new OpenApiServer { Url = "https://localhost:5000/api/chat" });
 });
 

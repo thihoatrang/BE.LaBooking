@@ -11,6 +11,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.19.2" />
     <PackageReference Include="Microsoft.ML.Tokenizers" Version="0.22.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>

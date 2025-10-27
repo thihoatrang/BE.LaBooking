@@ -1,7 +1,8 @@
-using Appointments.Infrastructure.Models.Dtos;
+﻿using Appointments.Application.Services;
 using Appointments.Application.Services.IService;
-using Appointments.Application.Services;
+using Appointments.Infrastructure.Models.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Appointments.Services.API.Controllers
 {
@@ -30,6 +31,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPost("create")]
+        [SwaggerOperation(
+        Summary = "Không dùng")]
         public async Task<ActionResult<CreatePaymentResponseDto>> Create([FromBody] CreatePaymentRequestDto request, CancellationToken ct)
         {
             var provider = _providers.FirstOrDefault(p => string.Equals(p.Vendor, request.Vendor, StringComparison.OrdinalIgnoreCase));
@@ -47,6 +50,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPost("create-url-for-appointment")]
+        [SwaggerOperation(
+        Summary = "Thanh toán VNPay")]
         public async Task<ActionResult<string>> CreateUrlForAppointment([FromBody] CreatePaymentForAppointmentRequestDto request, CancellationToken ct)
         {
             try
@@ -94,6 +99,8 @@ namespace Appointments.Services.API.Controllers
 
         // VNPAY return and IPN come with query params
         [HttpGet("return")]
+        [SwaggerOperation(
+        Summary = "Trả lại bên frontend")]
         public async Task<ActionResult<PaymentStatusDto>> Return()
         {
             var vendor = Request.Query["vendor"].ToString();
@@ -117,6 +124,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("ipn")]
+        [SwaggerOperation(
+        Summary = "Chưa dùng tới")]
         public async Task<ActionResult<string>> Ipn()
         {
             var vendor = Request.Query["vendor"].ToString();
@@ -140,6 +149,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("status/{orderId}")]
+        [SwaggerOperation(
+        Summary = "Xem trạng thái thanh toán của lịch hẹn")]
         public ActionResult<PaymentStatusDto> Status(string orderId)
         {
             var p = _paymentRepo.GetByOrderIdAsync(orderId).GetAwaiter().GetResult();
@@ -148,6 +159,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("appointment/{orderId}")]
+        [SwaggerOperation(
+        Summary = "Xem order (thanh toán)")]
         public async Task<ActionResult<object>> GetAppointmentByOrderId(string orderId)
         {
             try

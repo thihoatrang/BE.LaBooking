@@ -8,6 +8,7 @@ using Users.Application.Services.Saga;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Google.Apis.Auth;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Users.Services.API.Controllers
 {
@@ -32,7 +33,10 @@ namespace Users.Services.API.Controllers
             _configuration = configuration;
         }
 
+
         [HttpPost("login")]
+        [SwaggerOperation(
+        Summary = "Đăng nhập")]
         public async Task<ActionResult<AuthResponseDTO>> Login([FromBody] LoginRequestDTO loginRequest)
         {
             var response = await _authService.LoginAsync(loginRequest);
@@ -44,6 +48,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost("register")]
+        [SwaggerOperation(
+        Summary = "Đăng ký")]
         public async Task<ActionResult<AuthResponseDTO>> Register([FromBody] RegisterRequestDTO registerRequest)
         {
             try
@@ -76,6 +82,8 @@ namespace Users.Services.API.Controllers
 
         [Authorize]
         [HttpPut("update/{userId}")]
+        [SwaggerOperation(
+        Summary = "Chỉnh thông tin người dùng bằng Id")]
         public async Task<ActionResult<ResponseDto<UserDTO>>> UpdateUser(int userId, [FromBody] UpdateUserDTO updateUserDto)
         {
             _logger.LogInformation("Authorization header: {Header}", Request.Headers["Authorization"].ToString());
@@ -90,6 +98,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpGet("google-login")]
+        [SwaggerOperation(
+        Summary = "Login Google")]
         public IActionResult GoogleLogin()
         {
             try
@@ -171,6 +181,8 @@ namespace Users.Services.API.Controllers
 
 
         [HttpPost("verify-otp")]
+        [SwaggerOperation(
+        Summary = "Xác thực otp")]
         public async Task<ActionResult<AuthResponseDTO>> VerifyOtp([FromBody] VerifyOtpDTO verifyOtp)
         {
             _logger.LogInformation("Attempting to verify OTP for email: {Email}", verifyOtp.Email);
@@ -187,6 +199,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpDelete("delete/{email}")]
+        [SwaggerOperation(
+        Summary = "Xóa người dùng bằng email")]
         public async Task<ActionResult<ResponseDto<bool>>> DeleteUser(string email)
         {
             try
@@ -237,6 +251,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost("forgot-password")]
+        [SwaggerOperation(
+        Summary = "Quên mật khẩu")]
         public async Task<ActionResult<ResponseDto<bool>>> ForgotPassword([FromBody] ForgotPasswordDTO forgotPassword)
         {
             _logger.LogInformation("Attempting to send forgot password OTP to email: {Email}", forgotPassword.Email);
@@ -253,6 +269,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost("reset-password")]
+        [SwaggerOperation(
+        Summary = "Reset mật khẩu")]
         public async Task<ActionResult<ResponseDto<bool>>> ResetPassword([FromBody] ResetPasswordDTO resetPassword)
         {
             _logger.LogInformation("Attempting to reset password for email: {Email}", resetPassword.Email);
@@ -269,6 +287,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost("change-password")]
+        [SwaggerOperation(
+        Summary = "Đổi mật khẩu")]
         public async Task<ActionResult<ResponseDto<bool>>> ChangePassword([FromBody] ChangePasswordDTO changePassword)
         {
             _logger.LogInformation("Attempting to change password for email: {Email}", changePassword.Email);

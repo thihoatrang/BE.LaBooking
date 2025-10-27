@@ -1,6 +1,7 @@
+﻿using Appointments.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Appointments.Infrastructure.Data;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Appointments.Services.API.Controllers
 {
@@ -18,13 +19,14 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Kiểm tra kết nối DB Appointment")]
         public async Task<IActionResult> Get()
         {
             try
             {
                 // Check database connectivity
                 var appointmentDbHealthy = await _appointmentContext.Database.CanConnectAsync();
-                var sagaDbHealthy = await _sagaContext.Database.CanConnectAsync();
 
                 var healthStatus = new
                 {
@@ -35,26 +37,9 @@ namespace Appointments.Services.API.Controllers
                     Database = new
                     {
                         AppointmentDb = appointmentDbHealthy ? "Connected" : "Disconnected",
-                        SagaDb = sagaDbHealthy ? "Connected" : "Disconnected"
                     },
                     Uptime = Environment.TickCount64
                 };
-
-                if (!appointmentDbHealthy || !sagaDbHealthy)
-                {
-                    return StatusCode(503, new
-                    {
-                        Status = "Unhealthy",
-                        Timestamp = DateTime.UtcNow,
-                        Service = "Appointments Service",
-                        Database = new
-                        {
-                            AppointmentDb = appointmentDbHealthy ? "Connected" : "Disconnected",
-                            SagaDb = sagaDbHealthy ? "Connected" : "Disconnected"
-                        }
-                    });
-                }
-
                 return Ok(healthStatus);
             }
             catch (Exception ex)

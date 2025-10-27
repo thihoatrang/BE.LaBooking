@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using Lawyers.Infrastructure.Models.Dtos;
-using Lawyers.Infrastructure.Models.Saga;
 using Lawyer.Application.Services;
 using Lawyer.Application.Services.IService;
 using Lawyer.Application.Services.Saga;
+using Lawyers.Infrastructure.Models.Dtos;
+using Lawyers.Infrastructure.Models.Saga;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LA.Services.API.Controllers
 {
@@ -24,6 +25,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("GetAllLawyerProfile")]
+        [SwaggerOperation(
+        Summary = "Thông tin tất cả luật sư (có lĩnh vực)")]
         public async Task<ActionResult<ResponseDto<IEnumerable<LawyerProfileDTO>>>> GetAll()
         {
             var response = new ResponseDto<IEnumerable<LawyerProfileDTO>>();
@@ -46,6 +49,8 @@ namespace LA.Services.API.Controllers
 
         // GET: api/lawyer/GetProfileById/5
         [HttpGet("GetProfileById/{id}")]
+        [SwaggerOperation(
+        Summary = "Xem thông tin luật sư (có lĩnh vực)")]
         public async Task<ActionResult<ResponseDto<LawyerProfileDTO>>> GetById(int id)
         {
             var response = new ResponseDto<LawyerProfileDTO>();
@@ -94,6 +99,8 @@ namespace LA.Services.API.Controllers
 
         // PUT: api/lawyer/UpdateLawyerProfile/5
         [HttpPut("UpdateLawyerProfile/{id}")]
+        [SwaggerOperation(
+        Summary = "Sửa thông tin profile")]
         public async Task<IActionResult> UpdateLawyerProfile(int id, [FromBody] LawyerProfileDTO dto)
         {
             try
@@ -145,6 +152,8 @@ namespace LA.Services.API.Controllers
         //    }
         //}
         [HttpGet("GetProfileByUserId/{userId}")]
+        [SwaggerOperation(
+        Summary = "Xem thông tin luật sư")]
         public async Task<ActionResult<ResponseDto<LawyerProfileDTO>>> GetProfileByUserId(int userId)
         {
             var response = new ResponseDto<LawyerProfileDTO>();
@@ -169,6 +178,8 @@ namespace LA.Services.API.Controllers
         }
         //UPDATE
         [HttpPut("UpdateLawyerByLaywerId/{id}")]
+        [SwaggerOperation(
+        Summary = "Không dùng hay sao ó :3")]
         public async Task<IActionResult> UpdateLawyer(int id, [FromBody] UpdateLawyerDTO dto)
         {
             try
@@ -190,23 +201,23 @@ namespace LA.Services.API.Controllers
             }
         }
 
-        [HttpGet("{id}/saga-state")]
-        public async Task<IActionResult> GetSagaState(int id)
-        {
-            try
-            {
-                var sagaState = await _sagaService.GetSagaStateAsync(id);
-                if (sagaState == null) return NotFound();
+        //[HttpGet("{id}/saga-state")]
+        //public async Task<IActionResult> GetSagaState(int id)
+        //{
+        //    try
+        //    {
+        //        var sagaState = await _sagaService.GetSagaStateAsync(id);
+        //        if (sagaState == null) return NotFound();
                 
-                return Ok(sagaState);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { 
-                    Error = "Failed to get saga state", 
-                    Details = ex.Message 
-                });
-            }
-        }
+        //        return Ok(sagaState);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, new { 
+        //            Error = "Failed to get saga state", 
+        //            Details = ex.Message 
+        //        });
+        //    }
+        //}
     }
     }

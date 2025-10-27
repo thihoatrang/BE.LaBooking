@@ -43,6 +43,7 @@ namespace Users.Services.API
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Users API", Version = "v1" });
+                c.EnableAnnotations();
                 c.AddServer(new OpenApiServer { Url = "https://localhost:5000/api/users" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-using Lawyer.Application.Services.IService;
+﻿using Lawyer.Application.Services.IService;
 using Lawyers.Infrastructure.Models.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LA.Services.API.Controllers
 {
@@ -16,6 +17,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Xem tất cả bằng cấp")]
         public async Task<IActionResult> GetAllDiplomas([FromQuery] bool includeDeleted = false)
         {
             var response = await _diplomaService.GetAllDiplomasAsync(includeDeleted);
@@ -27,6 +30,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(
+        Summary = "Xem bằng cấp")]
         public async Task<IActionResult> GetDiplomaById(int id)
         {
             var response = await _diplomaService.GetDiplomaByIdAsync(id);
@@ -38,6 +43,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("lawyer/{lawyerId}")]
+        [SwaggerOperation(
+        Summary = "Xem bằng cấp tất cả của luật sư")]
         public async Task<IActionResult> GetDiplomasByLawyerId(int lawyerId, [FromQuery] bool includeDeleted = false)
         {
             var response = await _diplomaService.GetDiplomasByLawyerIdAsync(lawyerId, includeDeleted);
@@ -49,6 +56,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPost("lawyer/{lawyerId}")]
+        [SwaggerOperation(
+        Summary = "Tạo bằng cấp với luật sư")]
         public async Task<IActionResult> CreateDiploma(int lawyerId, [FromBody] LawyerDiplomaCreateDto diplomaDto)
         {
             var response = await _diplomaService.CreateDiplomaAsync(lawyerId, diplomaDto);
@@ -60,6 +69,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(
+        Summary = "Sửa bằng cấp")]
         public async Task<IActionResult> UpdateDiploma(int id, [FromBody] LawyerDiplomaUpdateDto diplomaDto)
         {
             var response = await _diplomaService.UpdateDiplomaAsync(id, diplomaDto);
@@ -71,6 +82,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa bằng cấp")]
         public async Task<IActionResult> DeleteDiploma(int id)
         {
             var response = await _diplomaService.DeleteDiplomaAsync(id);
@@ -82,6 +95,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpDelete("hard/{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa cứng bằng cấp")]
         public async Task<IActionResult> DeleteDiplomaHard(int id)
         {
             var response = await _diplomaService.DeleteDiplomaHardAsync(id);
