@@ -1,6 +1,7 @@
+﻿using Lawyers.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Lawyers.Infrastructure.Data;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LA.Services.API.Controllers
 {
@@ -16,6 +17,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Kiểm tra kết nối DB Lawyers")]
         public async Task<IActionResult> Get()
         {
             try

@@ -1,11 +1,12 @@
-﻿using Appointments.Infrastructure.Models;
-using Appointments.Infrastructure.Models.Dtos;
-using Appointments.Infrastructure.Models.Saga;
-using Appointments.Application.Services;
+﻿using Appointments.Application.Services;
 using Appointments.Application.Services.IService;
 using Appointments.Application.Services.Saga;
+using Appointments.Infrastructure.Models;
+using Appointments.Infrastructure.Models.Dtos;
+using Appointments.Infrastructure.Models.Saga;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Appointments.Services.API.Controllers
 {
@@ -41,6 +42,8 @@ namespace Appointments.Services.API.Controllers
         //    return Ok(response);
         //}
         [HttpPost("CREATE")]
+        [SwaggerOperation(
+        Summary = "Tạo lịch hẹn")]
         public async Task<IActionResult> Create([FromBody] CreateAppointmentDTO dto)
         {
             if (!ModelState.IsValid)
@@ -66,6 +69,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPut("{id}/confirm")]
+        [SwaggerOperation(
+        Summary = "Luật sư confirm lịch hẹn")]
         public async Task<IActionResult> UpdateConfirmedStatus(int id)
         {
             var result = await _appointmentService.UpdateConfirmedStatusAsync(id);
@@ -74,6 +79,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPut("{id}/cancel")]
+        [SwaggerOperation(
+        Summary = "Luật sư hoặc khách hủy lịch hẹn")]
         public async Task<IActionResult> UpdateCancelledStatus(int id)
         {
             try
@@ -99,6 +106,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPut("{id}/complete")]
+        [SwaggerOperation(
+        Summary = "Luật sư hoàn thành lịch hẹn")]
         public async Task<IActionResult> UpdateCompletedStatus(int id)
         {
             var result = await _appointmentService.UpdateCompletedStatusAsync(id);
@@ -107,6 +116,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa lịch hẹn (không dùng)")]
         public async Task<IActionResult> DeleteStatus(int id)
         {
             var result = await _appointmentService.DeleteStatusAsync(id);
@@ -115,6 +126,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpPut("UpdateAppointment/{id}")]
+        [SwaggerOperation(
+        Summary = "Chỉnh sửa lịch hẹn (không dùng)")]
         public async Task<IActionResult> UpdateAppointment(int id, [FromBody] UpdateAppointmentDTO dto)
         {
             try

@@ -3,56 +3,12 @@
   "WorkspaceRootPath": "E:\\BE_github\\BE.LaBooking\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|e:\\be_github\\be.labooking\\appointments.application\\services\\vnpayservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|solutionrelative:appointments.application\\services\\vnpayservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|e:\\be_github\\be.labooking\\appointments.services.api\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|solutionrelative:appointments.services.api\\controllers\\paymentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{57A74E2B-027D-4F2E-9A72-46BBEE18D68B}|LA.Services.API\\LA.Services.API.csproj|e:\\be_github\\be.labooking\\la.services.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{57A74E2B-027D-4F2E-9A72-46BBEE18D68B}|LA.Services.API\\LA.Services.API.csproj|solutionrelative:la.services.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|e:\\be_github\\be.labooking\\appointments.application\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|solutionrelative:appointments.application\\services\\appointmentservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|e:\\be_github\\be.labooking\\api.gateway\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|solutionrelative:api.gateway\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|e:\\be_github\\be.labooking\\api.gateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|solutionrelative:api.gateway\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{ACB2F024-719A-41C2-924E-890A0E230E09}|Users.Services.API\\Users.Services.API.csproj|e:\\be_github\\be.labooking\\users.services.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{ACB2F024-719A-41C2-924E-890A0E230E09}|Users.Services.API\\Users.Services.API.csproj|solutionrelative:users.services.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|e:\\be_github\\be.labooking\\appointments.application\\services\\appointmentwithuserlawyerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{0B63FA2F-7A77-45B6-8EB9-CCEA8E8078C1}|Appointments.Application\\Appointments.Application.csproj|solutionrelative:appointments.application\\services\\appointmentwithuserlawyerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|e:\\be_github\\be.labooking\\api.gateway\\controllers\\sagacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|solutionrelative:api.gateway\\controllers\\sagacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|e:\\be_github\\be.labooking\\api.gateway\\controllers\\mobilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|solutionrelative:api.gateway\\controllers\\mobilecontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|e:\\be_github\\be.labooking\\appointments.services.api\\controllers\\appointmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|solutionrelative:appointments.services.api\\controllers\\appointmentcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{ACB2F024-719A-41C2-924E-890A0E230E09}|Users.Services.API\\Users.Services.API.csproj|e:\\be_github\\be.labooking\\users.services.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{ACB2F024-719A-41C2-924E-890A0E230E09}|Users.Services.API\\Users.Services.API.csproj|solutionrelative:users.services.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|e:\\be_github\\be.labooking\\api.gateway\\ocelot.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F56CCCD6-0FEC-4345-A436-8E6C594C34B9}|API.Gateway\\API.Gateway.csproj|solutionrelative:api.gateway\\ocelot.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{9521682E-455B-4F31-8A8B-A303A33E53D1}|Appointments.Infrastructure\\Appointments.Infrastructure.csproj|e:\\be_github\\be.labooking\\appointments.infrastructure\\data\\appointmentdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{9521682E-455B-4F31-8A8B-A303A33E53D1}|Appointments.Infrastructure\\Appointments.Infrastructure.csproj|solutionrelative:appointments.infrastructure\\data\\appointmentdbcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|e:\\be_github\\be.labooking\\appointments.services.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E45BBCB5-9EEB-4344-9336-7D5B493B23A8}|Appointments.Services.API\\Appointments.Services.API.csproj|solutionrelative:appointments.services.api\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -67,166 +23,27 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "VnPayService.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\VnPayService.cs",
-              "RelativeDocumentMoniker": "Appointments.Application\\Services\\VnPayService.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\VnPayService.cs",
-              "RelativeToolTip": "Appointments.Application\\Services\\VnPayService.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAApwCYAAAAsAAAAAAAAAA==",
+              "Title": "PaymentController.cs",
+              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\Controllers\\PaymentController.cs",
+              "RelativeDocumentMoniker": "Appointments.Services.API\\Controllers\\PaymentController.cs",
+              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\Controllers\\PaymentController.cs",
+              "RelativeToolTip": "Appointments.Services.API\\Controllers\\PaymentController.cs",
+              "ViewState": "AgIAAKUAAAAAAAAAAAAUwKIAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-27T04:34:52.65Z",
+              "WhenOpened": "2025-10-27T12:13:59.158Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "Program.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Program.cs",
-              "RelativeDocumentMoniker": "API.Gateway\\Program.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Program.cs",
-              "RelativeToolTip": "API.Gateway\\Program.cs",
-              "ViewState": "AgIAAKsAAAAAAAAAAAApwJkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-27T04:23:20.024Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "appsettings.Development.json",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\appsettings.Development.json",
-              "RelativeDocumentMoniker": "API.Gateway\\appsettings.Development.json",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\appsettings.Development.json",
-              "RelativeToolTip": "API.Gateway\\appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-10-27T03:52:01.848Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "SagaController.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Controllers\\SagaController.cs",
-              "RelativeDocumentMoniker": "API.Gateway\\Controllers\\SagaController.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Controllers\\SagaController.cs",
-              "RelativeToolTip": "API.Gateway\\Controllers\\SagaController.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAwwGAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-27T03:51:36.666Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "MobileController.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Controllers\\MobileController.cs",
-              "RelativeDocumentMoniker": "API.Gateway\\Controllers\\MobileController.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\Controllers\\MobileController.cs",
-              "RelativeToolTip": "API.Gateway\\Controllers\\MobileController.cs",
-              "ViewState": "AgIAAK4AAAAAAAAAAAAwwL4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-27T03:51:32.745Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "appsettings.Development.json",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Users.Services.API\\appsettings.Development.json",
-              "RelativeDocumentMoniker": "Users.Services.API\\appsettings.Development.json",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Users.Services.API\\appsettings.Development.json",
-              "RelativeToolTip": "Users.Services.API\\appsettings.Development.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-10-26T18:54:11.265Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "Program.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Users.Services.API\\Program.cs",
-              "RelativeDocumentMoniker": "Users.Services.API\\Program.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Users.Services.API\\Program.cs",
-              "RelativeToolTip": "Users.Services.API\\Program.cs",
-              "ViewState": "AgIAAI4AAAAAAAAAAAAwwJ4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T18:50:51.354Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "ocelot.json",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\ocelot.json",
-              "RelativeDocumentMoniker": "API.Gateway\\ocelot.json",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\API.Gateway\\ocelot.json",
-              "RelativeToolTip": "API.Gateway\\ocelot.json",
-              "ViewState": "AgIAAIUAAAAAAAAAAAAuwJ8AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-10-26T18:41:55.315Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "AppointmentWithUserLawyerService.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\AppointmentWithUserLawyerService.cs",
-              "RelativeDocumentMoniker": "Appointments.Application\\Services\\AppointmentWithUserLawyerService.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\AppointmentWithUserLawyerService.cs",
-              "RelativeToolTip": "Appointments.Application\\Services\\AppointmentWithUserLawyerService.cs",
-              "ViewState": "AgIAADwAAAAAAAAAAAAswFAAAAAbAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T18:36:04.569Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "AppointmentService.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\AppointmentService.cs",
-              "RelativeDocumentMoniker": "Appointments.Application\\Services\\AppointmentService.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Application\\Services\\AppointmentService.cs",
-              "RelativeToolTip": "Appointments.Application\\Services\\AppointmentService.cs",
-              "ViewState": "AgIAAFEAAAAAAAAAAAAYwAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T18:35:57.557Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "AppointmentDbContext.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Infrastructure\\Data\\AppointmentDbContext.cs",
-              "RelativeDocumentMoniker": "Appointments.Infrastructure\\Data\\AppointmentDbContext.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Infrastructure\\Data\\AppointmentDbContext.cs",
-              "RelativeToolTip": "Appointments.Infrastructure\\Data\\AppointmentDbContext.cs",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAYwBEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T18:34:38.296Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "AppointmentController.cs",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\Controllers\\AppointmentController.cs",
-              "RelativeDocumentMoniker": "Appointments.Services.API\\Controllers\\AppointmentController.cs",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\Controllers\\AppointmentController.cs",
-              "RelativeToolTip": "Appointments.Services.API\\Controllers\\AppointmentController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-26T18:33:34.792Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "appsettings.json",
-              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\LA.Services.API\\appsettings.json",
-              "RelativeDocumentMoniker": "LA.Services.API\\appsettings.json",
-              "ToolTip": "E:\\BE_github\\BE.LaBooking\\LA.Services.API\\appsettings.json",
-              "RelativeToolTip": "LA.Services.API\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "DocumentMoniker": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\appsettings.json",
+              "RelativeDocumentMoniker": "Appointments.Services.API\\appsettings.json",
+              "ToolTip": "E:\\BE_github\\BE.LaBooking\\Appointments.Services.API\\appsettings.json",
+              "RelativeToolTip": "Appointments.Services.API\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAB2AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-10-26T18:33:26.776Z",
+              "WhenOpened": "2025-10-27T10:10:00.076Z",
               "EditorCaption": ""
             }
           ]

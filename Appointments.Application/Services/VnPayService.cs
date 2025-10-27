@@ -3,6 +3,7 @@ using System.Text;
 using Appointments.Infrastructure.Models.Dtos;
 using Appointments.Application.Services.IService;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace Appointments.Application.Services
 {
@@ -32,7 +33,7 @@ namespace Appointments.Application.Services
             var vnp_Command = "pay";
             var vnp_TxnRef = request.OrderId;
             var vnp_OrderInfo = string.IsNullOrEmpty(request.OrderInfo) ? $"Payment for order {request.OrderId}" : request.OrderInfo;
-            var vnp_OrderType = "billpayment";
+            var vnp_OrderType = "240000";
             var vnp_Amount = request.Amount * 100; // in VND x100 per VNPAY rules
             var vnp_Locale = locale;
             var vnp_ReturnUrl = returnUrl;
@@ -60,18 +61,17 @@ namespace Appointments.Application.Services
             // {
             //     parameters["vnp_IpnUrl"] = ipnUrl;
             // }
-
             // 1️⃣ Tạo chuỗi raw để ký
             var signData = BuildRawStringForSign(parameters);
 
             // 2️⃣ Tạo hash
-            var vnp_SecureHash = HmacSHA512(hashSecret, signData);
-
+            var vnp_SecureHash = HmacSha512(hashSecret, signData);
             // 3️⃣ Tạo query có encode cho URL redirect
-            var query = BuildUrlEncodedQuery(parameters);
+
+            //BuildUrlEncodedQuery(parameters);
 
             // 4️⃣ Gắn hash cuối cùng
-            var paymentUrl = $"{baseUrl}?{query}&vnp_SecureHash={vnp_SecureHash}";
+            var paymentUrl = $"{baseUrl}?{signData}&vnp_SecureHashType=HMACSHA512&vnp_SecureHash={vnp_SecureHash}";
 
             return await Task.FromResult(new CreatePaymentResponseDto
             {
@@ -89,7 +89,7 @@ namespace Appointments.Application.Services
                 .Where(kv => !string.Equals(kv.Key, signatureParamName, StringComparison.OrdinalIgnoreCase))
                 .ToDictionary(k => k.Key, v => v.Value), StringComparer.Ordinal);
             var query = BuildQuery(sorted);
-            var computed = HmacSHA512(hashSecret, query);
+            var computed = HmacSha512(hashSecret, query);
             var provided = parameters.TryGetValue(signatureParamName, out var sig) ? sig : string.Empty;
             return string.Equals(computed, provided, StringComparison.OrdinalIgnoreCase);
         }
@@ -125,27 +125,23 @@ namespace Appointments.Application.Services
             return query;
         }
 
-        private static string HmacSHA512(string key, string data)
+        private string HmacSha512(string secret, string data)
         {
-            var keyBytes = Encoding.UTF8.GetBytes(key);
-            var dataBytes = Encoding.UTF8.GetBytes(data);
-            using var hmac = new HMACSHA512(keyBytes);
-            var hash = hmac.ComputeHash(dataBytes);
-            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+            using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret));
+            var bytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
+            var sb = new StringBuilder(bytes.Length * 2);
+            foreach (var b in bytes)
+            {
+                sb.Append(b.ToString("X2"));
+            }
+            return sb.ToString();
         }
-
         private static string BuildRawStringForSign(IDictionary<string, string> parameters)
         {
+            string FromEncode(string enUrl) => WebUtility.UrlEncode(enUrl).Replace("%20", "+");
             return string.Join("&", parameters
                 .Where(kv => !string.IsNullOrEmpty(kv.Value))
-                .Select(kv => $"{kv.Key}={kv.Value}"));
-        }
-
-        private static string BuildUrlEncodedQuery(IDictionary<string, string> parameters)
-        {
-            return string.Join("&", parameters
-                .Where(kv => !string.IsNullOrEmpty(kv.Value))
-                .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
+                .Select(kv => $"{kv.Key}={FromEncode(kv.Value)}"));
         }
     }
 }

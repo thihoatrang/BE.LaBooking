@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using Users.Infrastructure.Models.Dtos;
 
 namespace Users.Services.API.Controllers
@@ -15,6 +16,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Xem full thông tin của tất cả tài khoản (có bio của luật sư)")]
         public async Task<ActionResult<ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>>> GetAll()
         {
             var response = new ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>();
@@ -34,6 +37,8 @@ namespace Users.Services.API.Controllers
 
         // GET: api/UserWithLawyerProfile/{userId}
         [HttpGet("{userId}")]
+        [SwaggerOperation(
+        Summary = "Xem full thông tin tài khoản theo id (có bio của luật sư)")]
         public async Task<ActionResult<ResponseDto<UserWithLawyerProfileDTO>>> GetByUserId(int userId)
         {
             var response = new ResponseDto<UserWithLawyerProfileDTO>();
@@ -58,6 +63,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpGet("only-lawyers")]
+        [SwaggerOperation(
+        Summary = "Xem full thông tin tất cả luật sư (dùng để show luật sư trang homepage)")]
         public async Task<ActionResult<ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>>> GetUsersWithLawyerProfileOnly()
         {
             var response = new ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>();
@@ -77,6 +84,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpGet("user-including-inactiveStatus")]
+        [SwaggerOperation(
+        Summary = "Xem full thông tin tài khoản (dùng cho Admin quản lý tất cả các tài khoản)")]
         public async Task<ActionResult<ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>>> GetAllIncludingInactive()
         {
             var response = new ResponseDto<IEnumerable<UserWithLawyerProfileDTO>>();
@@ -95,6 +104,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPut("{userId}")]
+        [SwaggerOperation(
+        Summary = "Sửa thông tin tài khoản (profile)")]
         public async Task<ActionResult<ResponseDto<bool>>> UpdateUserWithLawyerProfile(int userId, [FromBody] UpdateUserWithLawyerProfileDTO dto)
         {
             var response = await _service.UpdateUserWithLawyerProfileAsync(userId, dto);

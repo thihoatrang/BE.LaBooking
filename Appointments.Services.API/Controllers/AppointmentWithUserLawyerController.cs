@@ -1,8 +1,9 @@
-﻿using Appointments.Infrastructure.Models;
+﻿using Appointments.Application.Services;
+using Appointments.Infrastructure.Models;
 using Appointments.Infrastructure.Models.Dtos;
-using Appointments.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Appointments.Services.API.Controllers
 {
@@ -18,6 +19,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("GetAllAppointment")]
+        [SwaggerOperation(
+        Summary = "Xem tất cả lịch hẹn")]
         public async Task<ActionResult<ResponseDto<IEnumerable<AppointmentWithUserLawyerDTO>>>> GetAll()
         {
             var response = new ResponseDto<IEnumerable<AppointmentWithUserLawyerDTO>>();
@@ -38,6 +41,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("GetAppointmentById/{id}")]
+        [SwaggerOperation(
+        Summary = "Tìm lịch hẹn bằng id")]
         public async Task<ActionResult<ResponseDto<AppointmentWithUserLawyerDTO>>> GetById(int id)
         {
             var response = new ResponseDto<AppointmentWithUserLawyerDTO>();
@@ -64,6 +69,8 @@ namespace Appointments.Services.API.Controllers
         }
         //Update
         [HttpPut("UpdateAppointment/{id}")]
+        [SwaggerOperation(
+        Summary = "Chỉnh sửa lịch hẹn (không dùng)")]
         public async Task<ActionResult<ResponseDto<AppointmentWithUserLawyerDTO>>> Update(int id, [FromBody] Appointment updatedAppointment)
         {
             var response = new ResponseDto<AppointmentWithUserLawyerDTO>();
@@ -93,6 +100,8 @@ namespace Appointments.Services.API.Controllers
 
         // Khôi phục
         [HttpPut("restore/{id}")]
+        [SwaggerOperation(
+        Summary = "Khôi phục lịch hẹn")]
         public async Task<ActionResult<ResponseDto<bool>>> Restore(int id)
         {
             var response = new ResponseDto<bool>();
@@ -117,6 +126,8 @@ namespace Appointments.Services.API.Controllers
        
         // Lấy danh sách đã xóa mềm
         [HttpGet("GetDeletedAppointment")]
+        [SwaggerOperation(
+        Summary = "Xem lịch hẹn bị xóa")]
         public async Task<ActionResult<ResponseDto<IEnumerable<AppointmentWithUserLawyerDTO>>>> GetDeleted()
         {
             var response = new ResponseDto<IEnumerable<AppointmentWithUserLawyerDTO>>();
@@ -137,6 +148,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("by-lawyer/{lawyerId}")]
+        [SwaggerOperation(
+        Summary = "Xem quản lí lịch hẹn (của luật sư)")]
         public async Task<ActionResult<IEnumerable<AppointmentWithUserLawyerDTO>>> GetByLawyerId(int lawyerId)
         {
             var result = await _service.GetAppointmentsByLawyerIdAsync(lawyerId);
@@ -144,6 +157,8 @@ namespace Appointments.Services.API.Controllers
         }
 
         [HttpGet("by-user/{userId}")]
+        [SwaggerOperation(
+        Summary = "Xem quản lí lịch hẹn (của khách)")]
         public async Task<ActionResult<IEnumerable<AppointmentWithUserLawyerDTO>>> GetByUserId(int userId)
         {
             var result = await _service.GetAppointmentsByUserIdAsync(userId);

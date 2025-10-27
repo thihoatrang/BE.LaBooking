@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Users.Infrastructure.Models.Dtos;
+using Swashbuckle.AspNetCore.Annotations;
 using Users.Application.Services.IService;
+using Users.Infrastructure.Models.Dtos;
 
 namespace Users.Services.API.Controllers
 {
@@ -16,6 +17,8 @@ namespace Users.Services.API.Controllers
             _userService = userService;
         }
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Xem tất cả tài khoản")]
         public async Task<ActionResult<ResponseDto<IEnumerable<UserDTO>>>> GetAllUsers([FromQuery] bool includeInactive = false)
         {
             var response = await _userService.GetAllUsersAsync(includeInactive);
@@ -27,6 +30,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(
+        Summary = "Xem tài khoản qua id")]
         public async Task<ActionResult<ResponseDto<UserDTO>>> GetUserById(int id)
         {
             var response = await _userService.GetUserByIdAsync(id);
@@ -38,6 +43,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(
+        Summary = "Thêm tài khoản")]
         public async Task<ActionResult<ResponseDto<UserDTO>>> CreateUser([FromBody] UserDTO userDto)
         {
             var response = await _userService.CreateUserAsync(userDto);
@@ -49,6 +56,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(
+        Summary = "Sửa thông tin tài khoản")]
         public async Task<ActionResult<ResponseDto<bool>>> UpdateUser(int id, [FromBody] UserDTO userDto)
         {
             var response = await _userService.UpdateUserAsync(id, userDto);
@@ -60,6 +69,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpDelete("soft/{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa mềm tài khoản")]
         public async Task<ActionResult<ResponseDto<bool>>> SoftDeleteUser(int id)
         {
             var response = await _userService.SoftDeleteUserAsync(id);
@@ -71,6 +82,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpDelete("hard/{id}")]
+        [SwaggerOperation(
+        Summary = "Xoá cứng tài khoản")]
         public async Task<ActionResult<ResponseDto<bool>>> HardDeleteUser(int id)
         {
             var response = await _userService.HardDeleteUserAsync(id);
@@ -82,6 +95,8 @@ namespace Users.Services.API.Controllers
         }
 
         [HttpPost("restore/{id}")]
+        [SwaggerOperation(
+        Summary = "Khôi phục tài khoản (khi bị Admin khóa)")]
         public async Task<ActionResult<ResponseDto<bool>>> RestoreUser(int id)
         {
             var response = await _userService.RestoreUserAsync(id);

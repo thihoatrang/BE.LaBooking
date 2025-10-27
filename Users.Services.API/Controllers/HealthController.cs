@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Annotations;
 using Users.Infrastructure.Data;
 
 namespace Users.Application.Controllers
@@ -16,6 +17,8 @@ namespace Users.Application.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Kiểm tra kết nối DB User")]
         public async Task<IActionResult> Get()
         {
             try

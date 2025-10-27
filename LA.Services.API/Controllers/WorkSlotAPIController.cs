@@ -1,6 +1,7 @@
+﻿using Lawyer.Application.Services.IService;
 using Lawyers.Infrastructure.Models.Dtos;
-using Lawyer.Application.Services.IService;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace LA.Services.API.Controllers
 {
@@ -16,6 +17,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet]
+        [SwaggerOperation(
+        Summary = "Xem ca làm bằng id luật sư (trang quản lí ca làm của Lawyer)")]
         public async Task<IActionResult> GetWorkSlotsByLawyerId(int lawyerId)
         {
             ResponseDto<IEnumerable<WorkSlotDto>> _response = new();
@@ -35,6 +38,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [SwaggerOperation(
+        Summary = "Tìm ca làm bằng id")]
         public async Task<IActionResult> GetWorkSlotById(int id)
         {
             ResponseDto<WorkSlotDto> _response = new();
@@ -60,6 +65,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPost]
+        [SwaggerOperation(
+        Summary = "Tạo ca làm")]
         public async Task<IActionResult> CreateWorkSlot(int lawyerId, [FromBody] CreateWorkSlotDto createWorkSlotDto)
         {
             ResponseDto<WorkSlotDto> _response = new();
@@ -79,6 +86,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [SwaggerOperation(
+        Summary = "Sửa ca làm bằng id")]
         public async Task<IActionResult> UpdateWorkSlot(int lawyerId, int id, [FromBody] UpdateWorkSlotDtoNoId updateWorkSlotDto)
         {
             ResponseDto<WorkSlotDto> _response = new();
@@ -98,6 +107,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [SwaggerOperation(
+        Summary = "Xóa ca làm (thường không dùng)")]
         public async Task<IActionResult> DeleteWorkSlot(int id)
         {
             ResponseDto<string> _response = new(); // Use string as the generic type for deletion response
@@ -123,6 +134,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPut("deactivate")]
+        [SwaggerOperation(
+        Summary = "Vô hiệu hóa ca làm")]
         public async Task<IActionResult> DeactivateWorkSlot([FromBody] DeactivateWorkSlotDto dto)
         {
             var result = await _workSlotService.DeactivateWorkSlotAsync(dto);
@@ -134,6 +147,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpPut("activate")]
+        [SwaggerOperation(
+        Summary = "Kích hoạt ca làm")]
         public async Task<IActionResult> ActivateWorkSlot([FromBody] ActivateWorkSlotDto dto)
         {
             var result = await _workSlotService.ActivateWorkSlotAsync(dto);
@@ -145,6 +160,8 @@ namespace LA.Services.API.Controllers
         }
 
         [HttpGet("/api/workslots")]
+        [SwaggerOperation(
+        Summary = "Xem full ca làm (trang quản lí ca làm của Admin) ")]
         public async Task<IActionResult> GetAllWorkSlots([FromQuery] bool includeInactive = false)
         {
             var workSlots = await _workSlotService.GetAllWorkSlotsAsync(includeInactive);

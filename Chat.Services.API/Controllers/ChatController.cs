@@ -1,6 +1,7 @@
+﻿using Chat.Application.Services;
 using Chat.Infrastructure.Models.Dtos;
-using Chat.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace Chat.Services.API.Controllers;
 
@@ -17,8 +18,10 @@ public class ChatController : ControllerBase
 		_retrievalService = retrievalService;
 	}
 
-	[HttpPost]
-	public async Task<ActionResult<ChatResponseDto>> PostAsync([FromBody] ChatRequestDto request, CancellationToken cancellationToken)
+    [HttpPost]
+    [SwaggerOperation(
+        Summary = "Kết nối với Chat")]
+    public async Task<ActionResult<ChatResponseDto>> PostAsync([FromBody] ChatRequestDto request, CancellationToken cancellationToken)
 	{
 		if (string.IsNullOrWhiteSpace(request.Message))
 		{
