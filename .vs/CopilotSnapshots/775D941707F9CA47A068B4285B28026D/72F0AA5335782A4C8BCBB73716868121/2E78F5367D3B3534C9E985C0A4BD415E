@@ -36,7 +36,7 @@ namespace Appointments.Application.Services
             var vnp_Amount = request.Amount * 100; // in VND x100 per VNPAY rules
             var vnp_Locale = locale;
             var vnp_ReturnUrl = returnUrl;
-            var vnp_IpAddr = "128.199.178.23"; // could extract from HttpContext if available
+            var vnp_IpAddr = "113.161.78.90"; // could extract from HttpContext if available
             var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
 
             var parameters = new SortedDictionary<string, string>

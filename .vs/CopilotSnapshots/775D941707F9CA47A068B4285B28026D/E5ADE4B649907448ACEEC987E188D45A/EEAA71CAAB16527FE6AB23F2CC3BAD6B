@@ -121,6 +121,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "API Gateway", Version = "v1" });
+    
     // Add JWT Authentication to Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -157,15 +159,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        // Do NOT include the API Gateway's own swagger as a top-level option in UI.
-        // Instead list microservice swagger endpoints (Users first so it becomes the default selection).
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Gateway v1");
+
+        // Thêm Swagger từ các microservice (qua proxy)
         c.SwaggerEndpoint("/swagger/users/v1/swagger.json", "Users API v1");
         c.SwaggerEndpoint("/swagger/lawyers/v1/swagger.json", "Lawyers API v1");
         c.SwaggerEndpoint("/swagger/appointments/v1/swagger.json", "Appointments API v1");
         c.SwaggerEndpoint("/swagger/chat/v1/swagger.json", "Chat API v1");
-
-        // Make the first listed endpoint selected by default
-        c.RoutePrefix = string.Empty; // serve UI at root
     });
 }
 

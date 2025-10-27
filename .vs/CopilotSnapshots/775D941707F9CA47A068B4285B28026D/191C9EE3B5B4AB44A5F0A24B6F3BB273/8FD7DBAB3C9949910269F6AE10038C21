@@ -33,18 +33,19 @@ namespace Appointments.Application.Services
             var vnp_TxnRef = request.OrderId;
             var vnp_OrderInfo = string.IsNullOrEmpty(request.OrderInfo) ? $"Payment for order {request.OrderId}" : request.OrderInfo;
             var vnp_OrderType = "billpayment";
-            var vnp_Amount = request.Amount * 100; // in VND x100 per VNPAY rules
+            var vnp_Amount = (request.Amount * 100).ToString("0"); // in VND x100 per VNPAY rules
             var vnp_Locale = locale;
             var vnp_ReturnUrl = returnUrl;
-            var vnp_IpAddr = "128.199.178.23"; // could extract from HttpContext if available
+            var vnp_IpAddr = "113.161.78.90"; // could extract from HttpContext if available
             var vnp_CreateDate = DateTime.Now.ToString("yyyyMMddHHmmss");
 
-            var parameters = new SortedDictionary<string, string>
+            // Use a sorted dictionary so keys are in lexicographical order
+            var parameters = new SortedDictionary<string, string>(StringComparer.Ordinal)
             {
                 ["vnp_Version"] = vnp_Version,
                 ["vnp_Command"] = vnp_Command,
                 ["vnp_TmnCode"] = tmnCode,
-                ["vnp_Amount"] = vnp_Amount.ToString(),
+                ["vnp_Amount"] = vnp_Amount,
                 ["vnp_CurrCode"] = currCode,
                 ["vnp_TxnRef"] = vnp_TxnRef,
                 ["vnp_OrderInfo"] = vnp_OrderInfo,
@@ -55,23 +56,15 @@ namespace Appointments.Application.Services
                 ["vnp_CreateDate"] = vnp_CreateDate
             };
 
-            // Skip IPN URL for local development - VNPay cannot reach localhost
-            // if (!string.IsNullOrEmpty(ipnUrl))
-            // {
-            //     parameters["vnp_IpnUrl"] = ipnUrl;
-            // }
-
-            // 1️⃣ Tạo chuỗi raw để ký
-            var signData = BuildRawStringForSign(parameters);
-
-            // 2️⃣ Tạo hash
-            var vnp_SecureHash = HmacSHA512(hashSecret, signData);
-
-            // 3️⃣ Tạo query có encode cho URL redirect
+            // Build URL-encoded query from sorted parameters
             var query = BuildUrlEncodedQuery(parameters);
 
-            // 4️⃣ Gắn hash cuối cùng
-            var paymentUrl = $"{baseUrl}?{query}&vnp_SecureHash={vnp_SecureHash}";
+            // Compute HMAC over the URL-encoded query string (this matches VNPay requirement)
+            var signData = query;
+            var vnp_SecureHash = HmacSHA512(hashSecret, signData);
+
+            // Append encoded secure hash
+            var paymentUrl = $"{baseUrl}?{query}&vnp_SecureHash={Uri.EscapeDataString(vnp_SecureHash)}";
 
             return await Task.FromResult(new CreatePaymentResponseDto
             {
@@ -88,7 +81,9 @@ namespace Appointments.Application.Services
             var sorted = new SortedDictionary<string, string>(parameters
                 .Where(kv => !string.Equals(kv.Key, signatureParamName, StringComparison.OrdinalIgnoreCase))
                 .ToDictionary(k => k.Key, v => v.Value), StringComparer.Ordinal);
-            var query = BuildQuery(sorted);
+
+            // Build query using the same encoding rules as when creating signature
+            var query = BuildUrlEncodedQuery(sorted);
             var computed = HmacSHA512(hashSecret, query);
             var provided = parameters.TryGetValue(signatureParamName, out var sig) ? sig : string.Empty;
             return string.Equals(computed, provided, StringComparison.OrdinalIgnoreCase);
@@ -136,6 +131,7 @@ namespace Appointments.Application.Services
 
         private static string BuildRawStringForSign(IDictionary<string, string> parameters)
         {
+            // Kept for reference but not used for signing. VNPay requires signing the URL-encoded query.
             return string.Join("&", parameters
                 .Where(kv => !string.IsNullOrEmpty(kv.Value))
                 .Select(kv => $"{kv.Key}={kv.Value}"));
@@ -143,6 +139,7 @@ namespace Appointments.Application.Services
 
         private static string BuildUrlEncodedQuery(IDictionary<string, string> parameters)
         {
+            // Use Uri.EscapeDataString to match VNPay encoding expectations
             return string.Join("&", parameters
                 .Where(kv => !string.IsNullOrEmpty(kv.Value))
                 .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"));
