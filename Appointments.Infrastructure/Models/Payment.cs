@@ -30,4 +30,6 @@ public partial class Payment
     public string? PayDate { get; set; }
 
     public string? OrderInfo { get; set; }
+
+    public int? AppointmentId { get; set; } // Link to appointment
 }

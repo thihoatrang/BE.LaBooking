@@ -44,7 +44,7 @@ namespace Appointments.Application.Services
         Slot = dto.Slot,
     CreateAt = DateOnly.FromDateTime(DateTime.UtcNow),
             Spec = dto.Spec,
-       Services = JsonSerializer.Serialize(dto.Services ?? new List<string>()),
+       Services = JsonSerializer.Serialize(dto.Services ?? new List<string>(), JsonHelper.ServicesJsonOptions),
       Status = (int)AppointmentStatus.Pending,
      IsDel = false,
     Note = dto.Note
@@ -186,7 +186,7 @@ appointment.Status = (int)AppointmentStatus.Completed;
          appointment.ScheduledAt = DateOnly.FromDateTime(dto.ScheduledAt);
             appointment.Slot = dto.Slot;
           appointment.Spec = dto.Spec;
-            appointment.Services = JsonSerializer.Serialize(dto.Services ?? new List<string>());
+            appointment.Services = JsonSerializer.Serialize(dto.Services ?? new List<string>(), JsonHelper.ServicesJsonOptions);
           appointment.Note = dto.Note;
 
             await _appointmentRepository.UpdateAsync(appointment);

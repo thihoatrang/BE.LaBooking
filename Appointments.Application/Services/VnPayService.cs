@@ -83,15 +83,55 @@ namespace Appointments.Application.Services
 
         public bool VerifySignature(IDictionary<string, string> parameters, string signatureParamName)
         {
-            var settings = _configuration.GetSection("Payments:VnPay");
-            var hashSecret = settings["HashSecret"] ?? string.Empty;
-            var sorted = new SortedDictionary<string, string>(parameters
-                .Where(kv => !string.Equals(kv.Key, signatureParamName, StringComparison.OrdinalIgnoreCase))
-                .ToDictionary(k => k.Key, v => v.Value), StringComparer.Ordinal);
-            var query = BuildQuery(sorted);
-            var computed = HmacSha512(hashSecret, query);
-            var provided = parameters.TryGetValue(signatureParamName, out var sig) ? sig : string.Empty;
-            return string.Equals(computed, provided, StringComparison.OrdinalIgnoreCase);
+            try
+            {
+                var settings = _configuration.GetSection("Payments:VnPay");
+                var hashSecret = settings["HashSecret"] ?? string.Empty;
+                
+                if (string.IsNullOrEmpty(hashSecret))
+                {
+                    return false;
+                }
+
+                // Filter: Only include vnp_ parameters, exclude signature params and empty values
+                var sorted = new SortedDictionary<string, string>(
+                    parameters
+                        .Where(kv => 
+                            kv.Key.StartsWith("vnp_", StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(kv.Key, signatureParamName, StringComparison.OrdinalIgnoreCase) &&
+                            !string.Equals(kv.Key, "vnp_SecureHashType", StringComparison.OrdinalIgnoreCase) &&
+                            !string.IsNullOrEmpty(kv.Value))
+                        .ToDictionary(k => k.Key, v => v.Value), 
+                    StringComparer.Ordinal);
+
+                // Use the same format as BuildRawStringForSign for verification
+                // VNPay uses URL encoding with %20 replaced by +
+                // Note: Values from Request.Query are already decoded by ASP.NET Core,
+                // so we need to encode them again to match the format used when creating payment URL
+                string FromEncode(string value) => WebUtility.UrlEncode(value).Replace("%20", "+");
+                var query = string.Join("&", sorted
+                    .Where(kv => !string.IsNullOrEmpty(kv.Value))
+                    .Select(kv => $"{kv.Key}={FromEncode(kv.Value)}"));
+
+                var computed = HmacSha512(hashSecret, query);
+                var provided = parameters.TryGetValue(signatureParamName, out var sig) ? sig : string.Empty;
+                
+                var isMatch = string.Equals(computed, provided, StringComparison.OrdinalIgnoreCase);
+                
+                // Log for debugging
+                if (!isMatch)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Signature mismatch - Computed: {computed}, Provided: {provided}");
+                    System.Diagnostics.Debug.WriteLine($"Query string: {query}");
+                }
+                
+                return isMatch;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Signature verification error: {ex.Message}");
+                return false;
+            }
         }
 
         public PaymentStatusDto ParseCallback(IDictionary<string, string> parameters)

@@ -17,6 +17,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddHttpClient<Chat.Application.Services.OpenAIChatService>();
 builder.Services.AddHttpClient<Chat.Application.Services.RetrievalService>();
 builder.Services.AddHttpClient<Chat.Application.Services.SimpleEmbeddingService>();
+builder.Services.AddHttpClient<Chat.Application.Services.LegalDocumentService>();
 
 // Redis with fallback
 builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
@@ -39,6 +40,7 @@ builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
 builder.Services.AddScoped<Chat.Application.Services.IChatService, Chat.Application.Services.OpenAIChatService>();
 builder.Services.AddScoped<Chat.Application.Services.IRetrievalService, Chat.Application.Services.RetrievalService>();
 builder.Services.AddScoped<Chat.Application.Services.IEmbeddingService, Chat.Application.Services.SimpleEmbeddingService>();
+builder.Services.AddScoped<Chat.Application.Services.ILegalDocumentService, Chat.Application.Services.LegalDocumentService>();
 
 // Vector Store with fallback
 builder.Services.AddScoped<Chat.Application.Services.IVectorStoreService>(sp =>

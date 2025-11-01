@@ -32,6 +32,8 @@ namespace Appointments.Infrastructure.Models.Dtos
         [Required]
         public int DurationHours { get; set; } = 1; // Default 1 hour
 
+        public int? AppointmentId { get; set; } // Link to appointment
+
         public string? OrderInfo { get; set; }
         public string? ReturnUrl { get; set; }
         public string? IpnUrl { get; set; }

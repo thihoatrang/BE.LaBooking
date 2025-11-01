@@ -1,4 +1,5 @@
 using Appointments.Infrastructure.Models.Dtos;
+using Appointments.Infrastructure.Models.Enums;
 using Appointments.Infrastructure.Repository;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -8,15 +9,18 @@ namespace Appointments.Application.Services
     public class TransactionService : ITransactionService
     {
         private readonly IPaymentRepository _paymentRepository;
+        private readonly IAppointmentRepository _appointmentRepository;
         private readonly IConfiguration _configuration;
         private readonly ILogger<TransactionService> _logger;
 
         public TransactionService(
             IPaymentRepository paymentRepository,
+            IAppointmentRepository appointmentRepository,
             IConfiguration configuration,
             ILogger<TransactionService> logger)
         {
             _paymentRepository = paymentRepository;
+            _appointmentRepository = appointmentRepository;
             _configuration = configuration;
             _logger = logger;
         }
@@ -65,14 +69,66 @@ namespace Appointments.Application.Services
                 payment.Status = status;
                 payment.TransactionId = transactionId;
                 payment.Message = message;
-                payment.UpdatedAt = DateTime.UtcNow;
+                payment.UpdatedAt = DateTime.Now; // Use local time (Vietnam UTC+7)
 
                 await _paymentRepository.UpsertAsync(payment);
 
-                // If payment is successful, create transaction records
+                // If payment is successful, create transaction records and update appointment
                 if (status == "success" && payment.Amount.HasValue)
                 {
                     await CreateTransactionRecordsAsync(orderId, payment.Amount.Value);
+                    
+                    // Update appointment status if there's a linked appointment
+                    if (payment.AppointmentId.HasValue && payment.AppointmentId > 0)
+                    {
+                        var appointment = await _appointmentRepository.GetByIdAsync(payment.AppointmentId.Value);
+                        if (appointment != null)
+                        {
+                            var oldStatus = appointment.Status;
+                            _logger.LogInformation($"Updating appointment {appointment.Id} from status {oldStatus} to Confirmed ({(int)AppointmentStatus.Confirmed}) after successful payment");
+                            
+                            appointment.Status = (int)AppointmentStatus.Confirmed;
+                            await _appointmentRepository.UpdateAsync(appointment);
+                            
+                            // Verify the update
+                            var updatedAppointment = await _appointmentRepository.GetByIdAsync(payment.AppointmentId.Value);
+                            if (updatedAppointment != null && updatedAppointment.Status == (int)AppointmentStatus.Confirmed)
+                            {
+                                _logger.LogInformation($"Appointment {appointment.Id} confirmed successfully. Status changed from {oldStatus} to {updatedAppointment.Status}");
+                            }
+                            else
+                            {
+                                _logger.LogError($"Failed to verify appointment status update. Expected: {(int)AppointmentStatus.Confirmed}, Got: {updatedAppointment?.Status}");
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning($"Appointment {payment.AppointmentId.Value} not found when trying to update after successful payment");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Payment {orderId} succeeded but has no AppointmentId linked (AppointmentId: {payment.AppointmentId})");
+                    }
+                }
+                // If payment failed, keep appointment in PaymentPending state for retry
+                // Do NOT cancel automatically - user should be able to retry payment or cancel manually
+                else if (status == "failed" && payment.AppointmentId.HasValue && payment.AppointmentId > 0)
+                {
+                    var appointment = await _appointmentRepository.GetByIdAsync(payment.AppointmentId.Value);
+                    if (appointment != null)
+                    {
+                        // Keep appointment in PaymentPending state so user can retry
+                        // Only log the failure, don't change appointment status
+                        _logger.LogWarning($"Payment failed for appointment {appointment.Id}. Appointment remains in PaymentPending state for retry. OrderId: {orderId}, Message: {message}");
+                        
+                        // Optionally, you could add a retry count or timeout mechanism here
+                        // For now, we keep the appointment active so user can retry payment
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"Appointment {payment.AppointmentId.Value} not found when processing failed payment");
+                    }
                 }
 
                 _logger.LogInformation($"Payment status updated: OrderId={orderId}, Status={status}");
