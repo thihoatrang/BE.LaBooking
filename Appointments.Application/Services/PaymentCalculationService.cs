@@ -28,9 +28,10 @@ namespace Appointments.Application.Services
                     throw new ArgumentException($"Lawyer with ID {lawyerId} not found");
                 }
 
-                // Calculate amount based on PricePerHour and duration
-                var amount = (long)(lawyerProfile.PricePerHour * durationHours);
-                return amount;
+                // Calculate deposit: PricePerHour * durationHours * 2 hours * 30%
+                var baseAmount = (long)(lawyerProfile.PricePerHour * 2);
+                var depositAmount = (long)(baseAmount * 0.3m);
+                return depositAmount;
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ using Appointments.Application.Services.IService;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Collections.Generic;
+using Appointments.Application.Services;
 
 namespace Appointments.Application.Services.Saga
 {
@@ -57,6 +58,9 @@ namespace Appointments.Application.Services.Saga
 
             try
             {
+                var serviceCount = dto.Services?.Count ?? 0;
+                var needsPayment = serviceCount >= 2; // 2 services or more require payment
+
                 // Step 1: Create appointment
                 var appointment = new Appointment
                 {
@@ -66,8 +70,8 @@ namespace Appointments.Application.Services.Saga
                     Slot = dto.Slot ?? string.Empty,
                     CreateAt = DateOnly.FromDateTime(DateTime.UtcNow),
                     Spec = dto.Spec ?? string.Empty,
-                    Services = JsonSerializer.Serialize(dto.Services ?? new List<string>()),
-                    Status = (int)AppointmentStatus.Pending,
+                    Services = JsonSerializer.Serialize(dto.Services ?? new List<string>(), JsonHelper.ServicesJsonOptions),
+                    Status = needsPayment ? (int)AppointmentStatus.PaymentPending : (int)AppointmentStatus.Pending,
                     IsDel = false,
                     Note = dto.Note ?? string.Empty
                 };
@@ -76,16 +80,27 @@ namespace Appointments.Application.Services.Saga
                 sagaData.AppointmentId = appointment.Id;
                 _sagaStates[appointment.Id] = sagaData;
 
-                _logger.LogInformation($"Saga started for appointment {appointment.Id}");
+                _logger.LogInformation($"Saga started for appointment {appointment.Id}, needsPayment: {needsPayment}");
 
                 // Step 2: Deactivate work slot
                 await DeactivateWorkSlotAsync(appointment.Id);
 
-                // Step 3: Send email notification
-                await SendEmailNotificationAsync(appointment.Id);
+                // Step 3: Send email notification (only if not awaiting payment)
+                if (!needsPayment)
+                {
+                    await SendEmailNotificationAsync(appointment.Id);
+                }
 
-                // Step 4: Complete saga
-                await CompleteSagaAsync(appointment.Id);
+                // Step 4: Update saga state based on payment requirement
+                if (needsPayment)
+                {
+                    sagaData.State = AppointmentSagaState.PaymentPending;
+                    _logger.LogInformation($"Appointment {appointment.Id} is now awaiting payment");
+                }
+                else
+                {
+                    await CompleteSagaAsync(appointment.Id);
+                }
 
                 return sagaData;
             }

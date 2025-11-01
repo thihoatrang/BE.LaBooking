@@ -8,6 +8,7 @@ namespace Appointments.Infrastructure.Models.Saga
         WorkSlotDeactivated,
         EmailSent,
         Completed,
+        PaymentPending,
         Failed,
         Compensating
     }

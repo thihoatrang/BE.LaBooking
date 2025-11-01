@@ -8,12 +8,14 @@ public class KnowledgeService : IKnowledgeService
     private readonly IVectorStoreService _vectorStore;
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
+    private readonly ILegalDocumentService _legalDocumentService;
 
-    public KnowledgeService(IVectorStoreService vectorStore, HttpClient httpClient, IConfiguration configuration)
+    public KnowledgeService(IVectorStoreService vectorStore, HttpClient httpClient, IConfiguration configuration, ILegalDocumentService legalDocumentService)
     {
         _vectorStore = vectorStore;
         _httpClient = httpClient;
         _configuration = configuration;
+        _legalDocumentService = legalDocumentService;
     }
 
     public async Task IndexLawyersDataAsync(CancellationToken cancellationToken = default)
@@ -196,6 +198,92 @@ public class KnowledgeService : IKnowledgeService
         }
     }
 
+    public async Task IndexServicesAndPracticeAreasAsync(CancellationToken cancellationToken = default)
+    {
+    try
+    {
+        // 1. Lấy danh sách Service (Dịch vụ)
+        var servicesApi = _configuration["ServiceUrls:CoreAPI"] ?? "https://localhost:7073";
+        var servicesResponse = await _httpClient.GetStringAsync($"{servicesApi}/api/Service", cancellationToken);
+        var services = JsonSerializer.Deserialize<JsonElement>(servicesResponse);
+
+        if (services.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var service in services.EnumerateArray())
+            {
+                var id = service.GetProperty("id").GetInt32();
+                var name = service.GetProperty("name").GetString() ?? "";
+                var description = service.GetProperty("description").GetString() ?? "";
+                var price = service.TryGetProperty("price", out var priceProp) ? priceProp.GetDouble() : 0;
+
+                var content = $"Dịch vụ pháp lý: {name}\n" +
+                              $"Mô tả: {description}\n" +
+                              $"Mức phí: {price:C0}\n" +
+                              $"Liên hệ để được tư vấn chi tiết về dịch vụ này.";
+
+                var metadata = new Dictionary<string, object>
+                {
+                    ["type"] = "service",
+                    ["service_id"] = id,
+                    ["name"] = name,
+                    ["description"] = description,
+                    ["price"] = (float)price
+                };
+
+                await _vectorStore.IndexDocumentAsync($"service_{id}", content, metadata, cancellationToken);
+            }
+        }
+
+        // 2. Lấy danh sách PracticeArea (Lĩnh vực hành nghề)
+        var practiceAreasResponse = await _httpClient.GetStringAsync($"{servicesApi}/api/practice-areas", cancellationToken);
+        var practiceAreas = JsonSerializer.Deserialize<JsonElement>(practiceAreasResponse);
+
+        if (practiceAreas.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var area in practiceAreas.EnumerateArray())
+            {
+                var id = area.GetProperty("id").GetInt32();
+                var name = area.GetProperty("name").GetString() ?? "";
+                var description = area.GetProperty("description").GetString() ?? "";
+                var category = area.TryGetProperty("category", out var catProp) ? catProp.GetString() ?? "" : "";
+
+                var content = $"Lĩnh vực pháp lý: {name}\n" +
+                              $"Thuộc nhóm: {category}\n" +
+                              $"Mô tả: {description}\n" +
+                              $"Các luật sư chuyên về lĩnh vực này có thể tư vấn chi tiết.";
+
+                var metadata = new Dictionary<string, object>
+                {
+                    ["type"] = "practice_area",
+                    ["area_id"] = id,
+                    ["name"] = name,
+                    ["category"] = category,
+                    ["description"] = description
+                };
+
+                await _vectorStore.IndexDocumentAsync($"practice_area_{id}", content, metadata, cancellationToken);
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[ERROR] IndexServicesAndPracticeAreasAsync failed: {ex}");
+    }
+    }
+
+    public async Task IndexLegalDocumentsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await _legalDocumentService.IndexLegalDocumentsAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] IndexLegalDocumentsAsync failed: {ex}");
+        }
+    }
+
+
     public async Task IndexCustomDataAsync(string content, string source, Dictionary<string, object>? metadata = null, CancellationToken cancellationToken = default)
     {
         var id = $"custom_{Guid.NewGuid()}";
@@ -215,6 +303,8 @@ public class KnowledgeService : IKnowledgeService
         await IndexLawyersDataAsync(cancellationToken);
         await IndexUsersDataAsync(cancellationToken);
         await IndexAppointmentsDataAsync(cancellationToken);
+        await IndexServicesAndPracticeAreasAsync(cancellationToken);
+        await IndexLegalDocumentsAsync(cancellationToken);
         
         // Add some general legal knowledge
         await IndexCustomDataAsync(

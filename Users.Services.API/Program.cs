@@ -127,6 +127,22 @@ namespace Users.Services.API
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
             builder.Services.AddScoped<IFormRepository, FormRepository>();
+            builder.Services.AddScoped<IDashboardService, DashboardService>();
+            
+            // Add HttpClient for Appointments Service
+            builder.Services.AddHttpClient("AppointmentsService", client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:AppointmentsAPI"] ?? "https://localhost:7001");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => 
+                {
+                    // Allow self-signed certificates in development
+                    return true;
+                }
+            });
             
             // Add Saga Services
             builder.Services.AddScoped<IUserSagaService, UserSagaService>();

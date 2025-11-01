@@ -9,6 +9,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Linq;
 using System.Collections.Generic;
+using Appointments.Application.Services;
 
 namespace Appointments.Application.Services
 {
@@ -78,7 +79,7 @@ namespace Appointments.Application.Services
         private string NormalizeServicesString(string? servicesRaw)
         {
             var list = ParseServices(servicesRaw);
-            return JsonSerializer.Serialize(list);
+            return JsonSerializer.Serialize(list, JsonHelper.ServicesJsonOptions);
         }
 
         public async Task<IEnumerable<AppointmentWithUserLawyerDTO>> GetAllAppointmentsWithUserLawyerAsync()

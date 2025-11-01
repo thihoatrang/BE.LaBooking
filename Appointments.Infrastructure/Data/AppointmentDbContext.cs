@@ -40,7 +40,7 @@ public partial class AppointmentDbContext : DbContext
 
             entity.Property(e => e.BankCode).HasMaxLength(50);
             entity.Property(e => e.BankTranNo).HasMaxLength(100);
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(sysutcdatetime())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(GETDATE())"); // Use local time (Vietnam UTC+7)
             entity.Property(e => e.Message).HasMaxLength(500);
             entity.Property(e => e.OrderId).HasMaxLength(100);
             entity.Property(e => e.OrderInfo).HasMaxLength(500);

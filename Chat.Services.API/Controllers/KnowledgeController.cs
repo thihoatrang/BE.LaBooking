@@ -45,6 +45,20 @@ public class KnowledgeController : ControllerBase
         return Ok(new { message = "Appointments data indexed successfully" });
     }
 
+    [HttpPost("index-services-practice-areas")]
+    public async Task<ActionResult> IndexServicesAndPracticeAreasAsync(CancellationToken cancellationToken)
+    {
+        await _knowledgeService.IndexServicesAndPracticeAreasAsync(cancellationToken);
+        return Ok(new { message = "Services & practice areas indexed successfully" });
+    }
+
+    [HttpPost("index-legal-documents")]
+    public async Task<ActionResult> IndexLegalDocumentsAsync(CancellationToken cancellationToken)
+    {
+        await _knowledgeService.IndexLegalDocumentsAsync(cancellationToken);
+        return Ok(new { message = "Legal documents indexed successfully" });
+    }
+
     [HttpPost("index-custom")]
     public async Task<ActionResult> IndexCustomDataAsync([FromBody] CustomDataRequest request, CancellationToken cancellationToken)
     {
