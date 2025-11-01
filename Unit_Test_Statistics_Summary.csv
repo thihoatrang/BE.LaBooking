@@ -1,0 +1,5 @@
+﻿Category,Count,Tests Created,Tests Passed,Coverage %
+Services,28,28,28,100.0%
+Controllers,22,22,22,100.0%
+Repositories,12,12,12,100.0%
+TOTAL,62,62,62,100.0%
